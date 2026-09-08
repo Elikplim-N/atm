@@ -21,7 +21,7 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 380 }}>
+    <div className="card" style={{ maxWidth: 380, borderTop: '3px solid var(--brand-navy)' }}>
       <h2 style={{ marginTop: 0 }}>Management login</h2>
       <p className="helper-text">
         Demo credentials: <code>admin@gcb.example</code> / <code>ChangeMe123!</code>

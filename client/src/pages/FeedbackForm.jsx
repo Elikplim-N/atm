@@ -43,62 +43,71 @@ export default function FeedbackForm() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 480 }}>
-      <h2 style={{ marginTop: 0 }}>Rate your ATM experience</h2>
-      <p className="helper-text">
-        Scanned right after your transaction — this takes under a minute and helps GCB fix
-        recurring issues at this machine.
-      </p>
+    <div style={{ maxWidth: 500 }}>
+      <div className="brand-hero">
+        <p className="eyebrow">Customer feedback</p>
+        <h1>Rate your ATM experience</h1>
+        <p>
+          Takes under a minute and goes straight to the branch team responsible for this
+          machine.
+        </p>
+      </div>
 
-      {status === 'success' && (
-        <div className="banner success">Thank you! Your feedback has been recorded.</div>
-      )}
-      {status === 'error' && <div className="banner error">{errorMsg}</div>}
+      <div className="card form-card">
+        {status === 'success' && (
+          <div className="banner success">Thank you. Your feedback has been recorded.</div>
+        )}
+        {status === 'error' && <div className="banner error">{errorMsg}</div>}
 
-      <form className="stacked" onSubmit={handleSubmit}>
-        <label>
-          ATM code (printed on the receipt / screen)
-          <input
-            value={machine}
-            onChange={(e) => setMachine(e.target.value)}
-            placeholder="e.g. ATM-ACC-01"
-            required
-          />
-        </label>
-
-        {QUESTIONS.map((q) => (
-          <label key={q.key}>
-            {q.label}
-            <div className="rating-scale">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  type="button"
-                  key={n}
-                  className={ratings[q.key] === n ? 'selected' : ''}
-                  onClick={() => setRatings((r) => ({ ...r, [q.key]: n }))}
-                  aria-label={`${q.label}: ${n}`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+        <form className="stacked" onSubmit={handleSubmit}>
+          <label>
+            ATM code (printed on the receipt / screen)
+            <input
+              value={machine}
+              onChange={(e) => setMachine(e.target.value)}
+              placeholder="e.g. ATM-ACC-01"
+              required
+            />
           </label>
-        ))}
 
-        <label>
-          Comment (optional)
-          <textarea rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
-        </label>
+          {QUESTIONS.map((q) => (
+            <label key={q.key}>
+              {q.label}
+              <div className="rating-scale">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    type="button"
+                    key={n}
+                    className={ratings[q.key] === n ? 'selected' : ''}
+                    onClick={() => setRatings((r) => ({ ...r, [q.key]: n }))}
+                    aria-label={`${q.label}: ${n}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div className="rating-scale-labels">
+                <span>Poor</span>
+                <span>Excellent</span>
+              </div>
+            </label>
+          ))}
 
-        <label>
-          Phone number (optional, for follow-up)
-          <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="024..." />
-        </label>
+          <label>
+            Comment (optional)
+            <textarea rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
+          </label>
 
-        <button className="btn-primary" type="submit" disabled={!allAnswered || status === 'submitting'}>
-          {status === 'submitting' ? 'Submitting…' : 'Submit feedback'}
-        </button>
-      </form>
+          <label>
+            Phone number (optional, for follow-up)
+            <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="024..." />
+          </label>
+
+          <button className="btn-primary" type="submit" disabled={!allAnswered || status === 'submitting'}>
+            {status === 'submitting' ? 'Submitting…' : 'Submit feedback'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

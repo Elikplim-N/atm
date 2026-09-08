@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import logo from '../assets/gcb-mark.svg';
 
 export default function Navbar({ isAuthed, onLogout }) {
   const navigate = useNavigate();
@@ -6,8 +7,11 @@ export default function Navbar({ isAuthed, onLogout }) {
   return (
     <header className="navbar">
       <div className="brand">
-        GCB ATM Service Quality
-        <small>Real-time customer feedback monitoring</small>
+        <img src={logo} alt="GCB Bank" />
+        <span className="brand-text">
+          GCB Bank PLC
+          <small>ATM Service Quality Monitoring</small>
+        </span>
       </div>
       <nav>
         <NavLink to="/feedback" className={({ isActive }) => (isActive ? 'active' : '')}>

@@ -72,6 +72,16 @@ Demo admin login for the dashboard: `admin@gcb.example` / `ChangeMe123!`
 | `POST /api/auth/login` | Admin login, returns a JWT |
 | `GET /api/dashboard/summary` \| `/trends` \| `/branches` \| `/machines` \| `/alerts` \| `/recent` | Dashboard data (requires the admin JWT) |
 
+## Branding
+
+The interface uses GCB Bank PLC's navy-and-gold identity from its 2014 "soaring
+eagle" rebrand. `client/src/assets/gcb-mark.svg` is an original mark inspired by
+that identity (built in this environment, which has no outbound internet access to
+fetch GCB's actual logo file) — replace it with GCB's official logo asset if you
+have one; it's referenced from `Navbar.jsx` and `public/favicon.svg`. Brand colors
+are CSS custom properties (`--brand-navy`, `--brand-gold`, ...) in `client/src/styles.css`
+— update those to match GCB's official brand guide if it specifies different hex values.
+
 ## Notes on scope
 
 This is a working prototype built to demonstrate the proposal end-to-end, not a

@@ -34,6 +34,10 @@ export default function App() {
           />
         </Routes>
       </div>
+      <footer className="app-footer">
+        &copy; {new Date().getFullYear()} GCB Bank PLC. All feedback is used solely to improve ATM
+        service quality.
+      </footer>
     </div>
   );
 }

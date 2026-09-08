@@ -5,7 +5,7 @@ function badgeClass(avg) {
 
 export default function AlertsTable({ alerts }) {
   if (!alerts || alerts.length === 0) {
-    return <p className="helper-text">No underperforming ATMs in this window. 🎉</p>;
+    return <p className="helper-text">No ATMs below the alert threshold in this window.</p>;
   }
 
   return (

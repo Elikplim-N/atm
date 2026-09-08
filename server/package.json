@@ -1,0 +1,21 @@
+{
+  "name": "atm-service-quality-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API for the ATM Service Quality Monitoring Dashboard (GCB Bank PLC proposal)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "qrcode": "^1.5.4"
+  }
+}

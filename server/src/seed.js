@@ -1,5 +1,6 @@
+import 'dotenv/config';
 import bcrypt from 'bcryptjs';
-import { db } from './db.js';
+import { pool, initSchema } from './db.js';
 
 const branches = [
   { name: 'Accra Main', region: 'Greater Accra' },
@@ -51,7 +52,6 @@ function clamp(n, min, max) {
 }
 
 function sample(mean, volatility) {
-  // Simple triangular-ish noise, rounded to 1-5.
   const noise = (Math.random() + Math.random() + Math.random() - 1.5) * volatility;
   return clamp(Math.round(mean + noise), 1, 5);
 }
@@ -60,43 +60,77 @@ function randomPhone() {
   return `02${Math.floor(10000000 + Math.random() * 89999999)}`;
 }
 
-function seed() {
-  const countRow = db.prepare('SELECT COUNT(*) AS c FROM branches').get();
-  if (countRow.c > 0) {
+function maskLike(phone) {
+  return `${phone.slice(0, 2)}${'*'.repeat(phone.length - 4)}${phone.slice(-2)}`;
+}
+
+// Inserts rows in batches of a single multi-row INSERT each, since the
+// database may be a remote VPS where 1000+ one-row-per-round-trip inserts
+// would be latency-bound.
+async function batchInsertFeedback(rows) {
+  const CHUNK = 200;
+  const columns = [
+    'machine_id',
+    'channel',
+    'network_reliability',
+    'transaction_speed',
+    'cash_availability',
+    'security',
+    'overall_satisfaction',
+    'comment',
+    'contact_masked',
+    'created_at',
+  ];
+
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const chunk = rows.slice(i, i + CHUNK);
+    const values = [];
+    const placeholders = chunk.map((row, r) => {
+      const base = r * columns.length;
+      values.push(...row);
+      return `(${columns.map((_, c) => `$${base + c + 1}`).join(', ')})`;
+    });
+
+    await pool.query(
+      `INSERT INTO feedback (${columns.join(', ')}) VALUES ${placeholders.join(', ')}`,
+      values
+    );
+  }
+}
+
+async function seed() {
+  await initSchema();
+
+  const { rows: existing } = await pool.query('SELECT COUNT(*) AS c FROM branches');
+  if (Number(existing[0].c) > 0) {
     console.log('Database already seeded, skipping.');
+    await pool.end();
     return;
   }
 
-  const insertBranch = db.prepare('INSERT INTO branches (name, region) VALUES (?, ?)');
-  const insertMachine = db.prepare(
-    'INSERT INTO machines (code, branch_id, location_note) VALUES (?, ?, ?)'
-  );
-  const insertFeedback = db.prepare(`
-    INSERT INTO feedback
-      (machine_id, channel, network_reliability, transaction_speed, cash_availability, security, overall_satisfaction, comment, contact_masked, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  const insertAdmin = db.prepare(
-    'INSERT INTO admins (email, password_hash, name) VALUES (?, ?, ?)'
-  );
-
   const branchIds = {};
   for (const b of branches) {
-    const info = insertBranch.run(b.name, b.region);
-    branchIds[b.name] = Number(info.lastInsertRowid);
+    const { rows } = await pool.query(
+      'INSERT INTO branches (name, region) VALUES ($1, $2) RETURNING id',
+      [b.name, b.region]
+    );
+    branchIds[b.name] = rows[0].id;
   }
 
   const machineIds = {};
   for (const [branchName, codes] of Object.entries(machinesByBranch)) {
     for (const code of codes) {
-      const info = insertMachine.run(code, branchIds[branchName], `${branchName} branch premises`);
-      machineIds[code] = Number(info.lastInsertRowid);
+      const { rows } = await pool.query(
+        'INSERT INTO machines (code, branch_id, location_note) VALUES ($1, $2, $3) RETURNING id',
+        [code, branchIds[branchName], `${branchName} branch premises`]
+      );
+      machineIds[code] = rows[0].id;
     }
   }
 
   const DAYS = 60;
   const now = Date.now();
-  let total = 0;
+  const feedbackRows = [];
 
   for (const [code, id] of Object.entries(machineIds)) {
     const profile = machineProfiles[code];
@@ -109,16 +143,12 @@ function seed() {
         const speed = sample(dayMean, profile.volatility);
         const cash = sample(dayMean, profile.volatility);
         const security = sample(dayMean + 0.3, profile.volatility * 0.8);
-        const overall = clamp(
-          Math.round((network + speed + cash + security) / 4),
-          1,
-          5
-        );
+        const overall = clamp(Math.round((network + speed + cash + security) / 4), 1, 5);
         const channel = channels[Math.floor(Math.random() * channels.length)];
         const comment = comments[Math.floor(Math.random() * comments.length)];
         const contact = channel === 'web' ? null : maskLike(randomPhone());
 
-        insertFeedback.run(
+        feedbackRows.push([
           id,
           channel,
           network,
@@ -128,22 +158,30 @@ function seed() {
           overall,
           comment,
           contact,
-          ts.toISOString()
-        );
-        total++;
+          ts.toISOString(),
+        ]);
       }
     }
   }
 
+  await batchInsertFeedback(feedbackRows);
+
   const passwordHash = bcrypt.hashSync('ChangeMe123!', 10);
-  insertAdmin.run('admin@gcb.example', passwordHash, 'GCB Service Quality Admin');
+  await pool.query('INSERT INTO admins (email, password_hash, name) VALUES ($1, $2, $3)', [
+    'admin@gcb.example',
+    passwordHash,
+    'GCB Service Quality Admin',
+  ]);
 
-  console.log(`Seeded ${branches.length} branches, ${Object.keys(machineIds).length} machines, ${total} feedback records.`);
+  console.log(
+    `Seeded ${branches.length} branches, ${Object.keys(machineIds).length} machines, ${feedbackRows.length} feedback records.`
+  );
   console.log('Demo admin login -> email: admin@gcb.example / password: ChangeMe123!');
+
+  await pool.end();
 }
 
-function maskLike(phone) {
-  return `${phone.slice(0, 2)}${'*'.repeat(phone.length - 4)}${phone.slice(-2)}`;
-}
-
-seed();
+seed().catch((err) => {
+  console.error('Seed failed:', err);
+  process.exit(1);
+});

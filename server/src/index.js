@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
+import { initSchema } from './db.js';
 import authRoutes from './routes/auth.js';
 import branchRoutes from './routes/branches.js';
 import machineRoutes from './routes/machines.js';
@@ -34,6 +35,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`ATM Service Quality API listening on http://localhost:${PORT}`);
-});
+try {
+  await initSchema();
+  app.listen(PORT, () => {
+    console.log(`ATM Service Quality API listening on http://localhost:${PORT}`);
+  });
+} catch (err) {
+  console.error('Failed to connect to the database:', err.message);
+  process.exit(1);
+}

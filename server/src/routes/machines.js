@@ -1,46 +1,52 @@
 import { Router } from 'express';
 import QRCode from 'qrcode';
-import { db } from '../db.js';
+import { query } from '../db.js';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-  const machines = db
-    .prepare(
+router.get('/', async (req, res, next) => {
+  try {
+    const { rows } = await query(
       `SELECT m.*, b.name AS branch_name
        FROM machines m JOIN branches b ON b.id = m.branch_id
        ORDER BY b.name, m.code`
-    )
-    .all();
-  res.json(machines);
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/:code', (req, res) => {
-  const machine = db
-    .prepare(
+router.get('/:code', async (req, res, next) => {
+  try {
+    const { rows } = await query(
       `SELECT m.*, b.name AS branch_name
        FROM machines m JOIN branches b ON b.id = m.branch_id
-       WHERE m.code = ?`
-    )
-    .get(req.params.code);
-  if (!machine) return res.status(404).json({ error: 'Machine not found' });
-  res.json(machine);
+       WHERE m.code = $1`,
+      [req.params.code]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Machine not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Generates a QR code (PNG data URL) that a customer scans on the ATM receipt/
 // sticker to land directly on the feedback form pre-filled for that machine.
-router.get('/:code/qrcode', async (req, res) => {
-  const machine = db.prepare('SELECT * FROM machines WHERE code = ?').get(req.params.code);
-  if (!machine) return res.status(404).json({ error: 'Machine not found' });
-
-  const baseUrl = process.env.PUBLIC_WEB_URL || 'http://localhost:5173';
-  const feedbackUrl = `${baseUrl}/feedback?machine=${encodeURIComponent(machine.code)}`;
-
+router.get('/:code/qrcode', async (req, res, next) => {
   try {
+    const { rows } = await query('SELECT * FROM machines WHERE code = $1', [req.params.code]);
+    const machine = rows[0];
+    if (!machine) return res.status(404).json({ error: 'Machine not found' });
+
+    const baseUrl = process.env.PUBLIC_WEB_URL || 'http://localhost:5173';
+    const feedbackUrl = `${baseUrl}/feedback?machine=${encodeURIComponent(machine.code)}`;
+
     const dataUrl = await QRCode.toDataURL(feedbackUrl, { margin: 1, width: 320 });
     res.json({ machine: machine.code, url: feedbackUrl, qrDataUrl: dataUrl });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to generate QR code' });
+    next(err);
   }
 });
 

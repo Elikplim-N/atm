@@ -1,55 +1,57 @@
-import { DatabaseSync } from 'node:sqlite';
-import path from 'node:path';
-import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import pg from 'pg';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, '..', 'data');
-fs.mkdirSync(dataDir, { recursive: true });
+const { Pool } = pg;
 
-const dbPath = path.join(dataDir, 'atm.sqlite');
-export const db = new DatabaseSync(dbPath);
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required (see server/.env.example)');
+}
 
-db.exec(`
-  PRAGMA journal_mode = WAL;
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-  CREATE TABLE IF NOT EXISTS branches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    region TEXT NOT NULL
-  );
+export async function query(text, params) {
+  return pool.query(text, params);
+}
 
-  CREATE TABLE IF NOT EXISTS machines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL UNIQUE,
-    branch_id INTEGER NOT NULL REFERENCES branches(id),
-    location_note TEXT
-  );
+export async function initSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS branches (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      region TEXT NOT NULL
+    );
 
-  CREATE TABLE IF NOT EXISTS feedback (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    machine_id INTEGER NOT NULL REFERENCES machines(id),
-    channel TEXT NOT NULL CHECK (channel IN ('web', 'ussd', 'sms')),
-    network_reliability INTEGER NOT NULL CHECK (network_reliability BETWEEN 1 AND 5),
-    transaction_speed INTEGER NOT NULL CHECK (transaction_speed BETWEEN 1 AND 5),
-    cash_availability INTEGER NOT NULL CHECK (cash_availability BETWEEN 1 AND 5),
-    security INTEGER NOT NULL CHECK (security BETWEEN 1 AND 5),
-    overall_satisfaction INTEGER NOT NULL CHECK (overall_satisfaction BETWEEN 1 AND 5),
-    comment TEXT,
-    contact_masked TEXT,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-  );
+    CREATE TABLE IF NOT EXISTS machines (
+      id SERIAL PRIMARY KEY,
+      code TEXT NOT NULL UNIQUE,
+      branch_id INTEGER NOT NULL REFERENCES branches(id),
+      location_note TEXT
+    );
 
-  CREATE INDEX IF NOT EXISTS idx_feedback_machine ON feedback(machine_id);
-  CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at);
+    CREATE TABLE IF NOT EXISTS feedback (
+      id SERIAL PRIMARY KEY,
+      machine_id INTEGER NOT NULL REFERENCES machines(id),
+      channel TEXT NOT NULL CHECK (channel IN ('web', 'ussd', 'sms')),
+      network_reliability INTEGER NOT NULL CHECK (network_reliability BETWEEN 1 AND 5),
+      transaction_speed INTEGER NOT NULL CHECK (transaction_speed BETWEEN 1 AND 5),
+      cash_availability INTEGER NOT NULL CHECK (cash_availability BETWEEN 1 AND 5),
+      security INTEGER NOT NULL CHECK (security BETWEEN 1 AND 5),
+      overall_satisfaction INTEGER NOT NULL CHECK (overall_satisfaction BETWEEN 1 AND 5),
+      comment TEXT,
+      contact_masked TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
 
-  CREATE TABLE IF NOT EXISTS admins (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL
-  );
-`);
+    CREATE INDEX IF NOT EXISTS idx_feedback_machine ON feedback(machine_id);
+    CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at);
+
+    CREATE TABLE IF NOT EXISTS admins (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+  `);
+}
 
 export function maskContact(value) {
   if (!value) return null;

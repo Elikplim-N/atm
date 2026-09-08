@@ -22,7 +22,7 @@ ongoing, data-driven monitoring tool.
 
 ```
 atm/
-  server/   Express API + SQLite (node:sqlite) — feedback intake, auth, aggregation
+  server/   Express API + PostgreSQL — feedback intake, auth, aggregation
   client/   React + Vite — public feedback form, USSD/SMS/QR simulator, admin dashboard
 ```
 
@@ -33,21 +33,26 @@ The QR code embedded per ATM points straight at the web feedback form.
 
 ## Running locally
 
-Requires Node.js 22+ (uses the built-in `node:sqlite` module — no native build step,
-no external database to install).
+Requires Node.js 22+ and a PostgreSQL database (any Postgres 12+ works — a managed
+instance, a VPS, or a local install).
 
 ```bash
 # 1. API
 cd server
 npm install
-npm run seed   # creates server/data/atm.sqlite with demo branches/machines/feedback
-npm start       # http://localhost:4000
+cp .env.example .env   # then set DATABASE_URL to your Postgres connection string
+npm run seed            # creates the schema + demo branches/machines/feedback
+npm start                # http://localhost:4000
 
 # 2. Web app (separate terminal)
 cd client
 npm install
 npm run dev     # http://localhost:5173
 ```
+
+The server won't start without `DATABASE_URL` set — it creates its own tables on
+first run (`initSchema()` in `server/src/db.js`), so an empty database is fine as
+long as the user in the connection string can create tables in it.
 
 Demo admin login for the dashboard: `admin@gcb.example` / `ChangeMe123!`
 
@@ -85,8 +90,8 @@ custom properties (`--brand-navy`, `--brand-gold`, ...) in `client/src/styles.cs
 ## Notes on scope
 
 This is a working prototype built to demonstrate the proposal end-to-end, not a
-production banking system: auth is a single seeded admin account, SQLite is used in
-place of a managed database, and USSD/SMS are simulated rather than wired to a live
-telco aggregator. Each of those is a swap-in, not a redesign, when moving toward
-production (e.g. Postgres for the database, an Africa's Talking/similar account for
-real USSD/SMS, proper admin user management).
+production banking system: auth is a single seeded admin account, and USSD/SMS are
+simulated rather than wired to a live telco aggregator. Each of those is a swap-in,
+not a redesign, when moving toward production (e.g. an Africa's Talking/similar
+account for real USSD/SMS, proper admin user management, connection pooling tuned
+for the deployment target).

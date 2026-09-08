@@ -1,18 +1,26 @@
 import { Router } from 'express';
-import { db } from '../db.js';
+import { query } from '../db.js';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-  const branches = db.prepare('SELECT * FROM branches ORDER BY name').all();
-  res.json(branches);
+router.get('/', async (req, res, next) => {
+  try {
+    const { rows } = await query('SELECT * FROM branches ORDER BY name');
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/:id/machines', (req, res) => {
-  const machines = db
-    .prepare('SELECT * FROM machines WHERE branch_id = ? ORDER BY code')
-    .all(req.params.id);
-  res.json(machines);
+router.get('/:id/machines', async (req, res, next) => {
+  try {
+    const { rows } = await query('SELECT * FROM machines WHERE branch_id = $1 ORDER BY code', [
+      req.params.id,
+    ]);
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;

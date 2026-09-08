@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import logo from '../assets/gcb-mark.svg';
+import logo from '../assets/gcb-logo.png';
 
 export default function Navbar({ isAuthed, onLogout }) {
   const navigate = useNavigate();
@@ -7,7 +7,9 @@ export default function Navbar({ isAuthed, onLogout }) {
   return (
     <header className="navbar">
       <div className="brand">
-        <img src={logo} alt="GCB Bank" />
+        <span className="brand-logo-chip">
+          <img src={logo} alt="GCB Bank" />
+        </span>
         <span className="brand-text">
           GCB Bank PLC
           <small>ATM Service Quality Monitoring</small>

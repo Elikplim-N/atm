@@ -74,13 +74,14 @@ Demo admin login for the dashboard: `admin@gcb.example` / `ChangeMe123!`
 
 ## Branding
 
-The interface uses GCB Bank PLC's navy-and-gold identity from its 2014 "soaring
-eagle" rebrand. `client/src/assets/gcb-mark.svg` is an original mark inspired by
-that identity (built in this environment, which has no outbound internet access to
-fetch GCB's actual logo file) — replace it with GCB's official logo asset if you
-have one; it's referenced from `Navbar.jsx` and `public/favicon.svg`. Brand colors
-are CSS custom properties (`--brand-navy`, `--brand-gold`, ...) in `client/src/styles.css`
-— update those to match GCB's official brand guide if it specifies different hex values.
+The interface uses GCB Bank PLC's official logo (`client/src/assets/gcb-logo.png`,
+supplied directly) and its navy-and-gold identity from the bank's 2014 "soaring
+eagle" rebrand. The logo sits on a white chip in the navy navbar so its black
+wordmark stays legible; `client/src/assets/gcb-icon.png` and `public/favicon.png`
+are eagle-only crops generated from the same file for the browser tab icon. Brand
+colors are CSS custom properties (`--brand-navy`, `--brand-gold`, ...) in
+`client/src/styles.css` — update those if GCB's brand guide specifies different
+hex values.
 
 ## Notes on scope
 

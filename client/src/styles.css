@@ -63,6 +63,8 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 8px;
   padding: 12px 24px;
   background: var(--brand-navy);
   border-bottom: 3px solid var(--brand-gold);
@@ -75,11 +77,18 @@ textarea:focus-visible {
   color: #fff;
 }
 
-.navbar .brand img {
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
+.brand-logo-chip {
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+}
+
+.brand-logo-chip img {
+  height: 34px;
+  display: block;
 }
 
 .navbar .brand-text {
@@ -356,6 +365,102 @@ form.stacked select {
   margin-top: -2px;
 }
 
+/* One-question-at-a-time feedback wizard */
+.progress-track {
+  height: 4px;
+  background: var(--gridline);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--brand-gold);
+  transition: width 0.25s ease;
+}
+
+.step-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.link-back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.link-back:hover {
+  color: var(--brand-navy);
+}
+
+.question-step {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.question-step h2 {
+  font-size: 19px;
+  margin: 0 0 22px;
+}
+
+.rating-scale-lg {
+  gap: 10px;
+}
+
+.rating-scale-lg button {
+  padding: 16px 0;
+  font-size: 17px;
+  border-radius: 8px;
+}
+
+.rating-scale-lg .rating-scale-labels {
+  max-width: none;
+}
+
+.feedback-done {
+  text-align: center;
+  padding: 20px 8px;
+}
+
+.feedback-done-icon {
+  width: 52px;
+  height: 52px;
+  line-height: 52px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--status-good) 15%, white);
+  color: var(--status-good);
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 auto 14px;
+}
+
+.feedback-done h2 {
+  margin: 0 0 8px;
+}
+
+.btn-secondary {
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--brand-navy);
+  border: 1px solid var(--baseline);
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13.5px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--brand-navy);
+}
+
 .btn-primary {
   padding: 11px 18px;
   background: var(--brand-navy);
@@ -422,5 +527,33 @@ form.stacked select {
 @media (max-width: 720px) {
   .two-col {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 16px;
+  }
+
+  .navbar {
+    padding: 10px 16px;
+  }
+
+  .navbar .brand-text small {
+    display: none;
+  }
+
+  .navbar nav a {
+    margin-left: 0;
+    margin-right: 16px;
+    font-size: 12.5px;
+  }
+
+  .brand-hero {
+    padding: 18px;
+  }
+
+  .brand-hero h1 {
+    font-size: 19px;
   }
 }

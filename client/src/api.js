@@ -1,11 +1,14 @@
 import axios from 'axios';
 
-// In local dev, requests to /api are proxied to the local server (see
-// vite.config.js). On Vercel the client and server are separate projects on
-// separate domains, so VITE_API_URL must point at the deployed server.
-const baseURL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
-  : '/api';
+// In a unified single-project deployment, both frontend and serverless API
+// are hosted together on the same origin, so API requests should always use
+// the relative '/api' path. This avoids any CORS issues or broken cross-origin URLs.
+const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
+const isInvalidUrl = !rawApiUrl || rawApiUrl.includes('gcb-atm-server') || rawApiUrl.includes('placeholder');
+
+const baseURL = isInvalidUrl
+  ? '/api'
+  : `${rawApiUrl.replace(/\/$/, '')}/api`;
 
 const api = axios.create({ baseURL });
 

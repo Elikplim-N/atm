@@ -4,14 +4,22 @@ import api from '../api.js';
 import logo from '../assets/gcb-logo.png';
 
 const QUICK_TAGS = [
-  'Cash dispensed quickly',
+  'Cash dispensed promptly',
   'Fast transaction speed',
   'Card returned smoothly',
-  'Clean ATM booth',
-  'Felt secure & safe',
+  'Clean & well-lit booth',
+  'Felt safe and secure',
   'Receipt printed clearly',
   'Network was slow',
   'Low cash warning',
+];
+
+const RATING_LEVELS = [
+  { val: 5, label: 'Excellent', stars: '★★★★★', desc: 'Fast, smooth and reliable' },
+  { val: 4, label: 'Good', stars: '★★★★☆', desc: 'Satisfactory service' },
+  { val: 3, label: 'Average', stars: '★★★☆☆', desc: 'Acceptable experience' },
+  { val: 2, label: 'Poor', stars: '★★☆☆☆', desc: 'Noticeable delays or issues' },
+  { val: 1, label: 'Very Poor', stars: '★☆☆☆☆', desc: 'Failed transaction or error' },
 ];
 
 export default function AtmScreen() {
@@ -26,16 +34,16 @@ export default function AtmScreen() {
   const [feedbackUrl, setFeedbackUrl] = useState('');
   const [clock, setClock] = useState(new Date().toLocaleTimeString());
   const [currentDate, setCurrentDate] = useState(
-    new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    new Date().toLocaleDateString('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
   );
 
-  // Mobile orientation detection
-  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
-  const [dismissOrientationWarning, setDismissOrientationWarning] = useState(false);
-
-  // Screen flow: 'idle' (welcome/attract) -> 'rating' (post-tx feedback prompt) -> 'thankyou' (confirmation)
+  // Screen flow: 'rating' (post-tx feedback prompt) | 'thankyou' | 'idle' (welcome screen)
   const [screenState, setScreenState] = useState('rating');
-  const [enclosureMode, setEnclosureMode] = useState(true); // show ATM hardware bezel
 
   // Feedback form state
   const [overallRating, setOverallRating] = useState(5);
@@ -60,22 +68,6 @@ export default function AtmScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // Detect mobile portrait orientation
-  useEffect(() => {
-    function checkOrientation() {
-      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      const isNarrow = window.innerWidth <= 860;
-      setIsPortraitMobile(isPortrait && isNarrow);
-    }
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
-  }, []);
-
   // Fetch machines list for switcher
   useEffect(() => {
     api
@@ -86,8 +78,11 @@ export default function AtmScreen() {
         if (found) setCurrentMachine(found);
       })
       .catch(() => {
-        // Fallback demo machine
-        setCurrentMachine({ code: machineCode, branch_name: 'Accra Main Branch', region: 'Greater Accra' });
+        setCurrentMachine({
+          code: machineCode,
+          branch_name: 'Accra Main Branch',
+          region: 'Greater Accra',
+        });
       });
   }, [machineCode]);
 
@@ -149,12 +144,14 @@ export default function AtmScreen() {
         transaction_speed: subRatings.transaction_speed,
         cash_availability: subRatings.cash_availability,
         security: subRatings.security,
-        comment: selectedTags.length > 0 ? `ATM Screen Kiosk: ${selectedTags.join(', ')}` : 'ATM Screen Kiosk One-Touch Rating',
+        comment:
+          selectedTags.length > 0
+            ? `ATM Kiosk: ${selectedTags.join(', ')}`
+            : 'ATM Kiosk On-Screen Feedback',
       });
       setScreenState('thankyou');
     } catch (err) {
       console.error('Failed to submit ATM feedback:', err);
-      // Still show thank you on screen so customer is never stuck at terminal
       setScreenState('thankyou');
     } finally {
       setSubmitting(false);
@@ -162,54 +159,17 @@ export default function AtmScreen() {
   }
 
   return (
-    <div className="atm-kiosk-page">
-      {/* Mobile Portrait Orientation Prompt */}
-      {isPortraitMobile && !dismissOrientationWarning && (
-        <div className="atm-orientation-overlay">
-          <div className="atm-orientation-card">
-            <div className="phone-rotate-anim">
-              <svg viewBox="0 0 80 80" className="rotate-device-icon" fill="none">
-                <rect x="24" y="10" width="32" height="60" rx="6" stroke="#d4a017" strokeWidth="3.5" />
-                <circle cx="40" cy="62" r="2.5" fill="#d4a017" />
-                <line x1="34" y1="16" x2="46" y2="16" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" />
-                <path d="M62 26 C72 38, 72 48, 62 60" stroke="#63b3ed" strokeWidth="3" strokeLinecap="round" strokeDasharray="3 3" />
-                <polygon points="60,62 68,58 65,67" fill="#63b3ed" />
-              </svg>
-            </div>
-            <span className="orientation-chip">ATM HARDWARE SCREEN</span>
-            <h3>Please Turn Your Screen Horizontal</h3>
-            <p>
-              Bank ATM screens operate on horizontal (landscape) monitors.
-              Rotate your phone horizontally to experience the real ATM touch terminal.
-            </p>
-            <div className="orientation-btn-group">
-              <button
-                type="button"
-                className="btn-rotate-mobile"
-                onClick={() => navigate(`/feedback?machine=${machineCode}`)}
-              >
-                📱 Open Mobile Form Instead
-              </button>
-              <button
-                type="button"
-                className="btn-rotate-dismiss"
-                onClick={() => setDismissOrientationWarning(true)}
-              >
-                View in Portrait Anyway
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Top Simulator Controls Toolbar */}
-      <div className="atm-kiosk-toolbar">
-        <div className="toolbar-left">
-          <span className="toolbar-label">ATM Terminal Simulator</span>
+    <div className="clean-atm-view">
+      {/* Discreet Terminal Toolbar for Testing & Machine Selection */}
+      <div className="clean-atm-topbar">
+        <div className="clean-topbar-left">
+          <span className="clean-terminal-badge">Terminal Kiosk</span>
+          <label htmlFor="atm-select" className="sr-only">Select ATM Machine</label>
           <select
+            id="atm-select"
             value={machineCode}
             onChange={(e) => handleMachineChange(e.target.value)}
-            className="atm-select"
+            className="clean-atm-select"
           >
             {machines.map((m) => (
               <option key={m.id || m.code} value={m.code}>
@@ -218,297 +178,266 @@ export default function AtmScreen() {
             ))}
           </select>
         </div>
-        <div className="toolbar-right">
+        <div className="clean-topbar-right">
           <button
-            className={`toolbar-btn ${enclosureMode ? 'active' : ''}`}
-            onClick={() => setEnclosureMode(!enclosureMode)}
-          >
-            {enclosureMode ? '🖥️ Fullscreen Kiosk Mode' : '🏧 ATM Machine Bezel'}
-          </button>
-          <button
-            className="toolbar-btn reset"
+            type="button"
+            className="clean-action-link"
             onClick={() => setScreenState('rating')}
           >
-            🔄 Trigger Post-Transaction Prompt
+            Simulate Transaction Prompt
+          </button>
+          <button
+            type="button"
+            className="clean-action-link"
+            onClick={() => navigate(`/feedback?machine=${machineCode}`)}
+          >
+            Open Mobile View
           </button>
         </div>
       </div>
 
-      {/* Main ATM Machine / Kiosk Housing */}
-      <div className={`atm-enclosure ${enclosureMode ? 'has-bezel' : 'borderless'}`}>
-        {/* Physical ATM Top Fascia (Bezel mode) */}
-        {enclosureMode && (
-          <div className="atm-fascia">
-            <div className="atm-fascia-brand">
-              <img src={logo} alt="GCB Bank" className="fascia-logo" />
-              <div>
-                <div className="fascia-bank-name">GCB BANK PLC</div>
-                <div className="fascia-sub">24 HOUR AUTOMATED TELLER MACHINE</div>
-              </div>
-            </div>
-            <div className="atm-security-camera">
-              <div className="camera-lens"></div>
-              <span>SECURITY SURVEILLANCE ACTIVE</span>
-            </div>
-          </div>
-        )}
-
-        {/* ATM Screen Display Unit */}
-        <div className="atm-screen-container">
-          {/* ATM Screen Status Header */}
-          <div className="atm-screen-header">
-            <div className="atm-brand-badge">
-              <img src={logo} alt="GCB" className="screen-logo" />
-              <span>GCB BANK</span>
-            </div>
-            <div className="atm-screen-info">
-              <span className="atm-machine-badge">{machineCode}</span>
-              <span className="atm-branch-name">
-                {currentMachine?.branch_name || 'Accra Main'}
+      {/* Main Clean Professional ATM Screen */}
+      <div className="clean-atm-container">
+        {/* Professional Bank Header */}
+        <header className="clean-atm-header">
+          <div className="clean-header-brand">
+            <img src={logo} alt="GCB Bank" className="clean-bank-logo" />
+            <div className="clean-bank-details">
+              <span className="clean-bank-name">GCB BANK PLC</span>
+              <span className="clean-terminal-sub">
+                ATM Service Quality Monitoring • {machineCode}
               </span>
             </div>
-            <div className="atm-screen-datetime">
-              <span>{currentDate}</span>
-              <span className="atm-clock">{clock}</span>
+          </div>
+          <div className="clean-header-meta">
+            <div className="clean-branch-pill">
+              <span className="status-dot-green"></span>
+              {currentMachine?.branch_name || 'Accra Main Branch'}
+            </div>
+            <div className="clean-clock-box">
+              <span className="clean-date">{currentDate}</span>
+              <span className="clean-time">{clock}</span>
             </div>
           </div>
+        </header>
 
-          {/* SCREEN CONTENT: 1. Post-Transaction Rating Screen */}
-          {screenState === 'rating' && (
-            <div className="atm-screen-body">
-              {/* Transaction Eject Alert Banner */}
-              <div className="atm-tx-banner">
-                <div className="tx-icon">✓</div>
-                <div className="tx-details">
-                  <div className="tx-title">TRANSACTION COMPLETED ({txReceiptNumber})</div>
-                  <div className="tx-sub">Please retrieve your Cash and Card from the dispenser below</div>
-                </div>
+        {/* SCREEN STATE 1: Post-Transaction Service Quality Rating */}
+        {screenState === 'rating' && (
+          <main className="clean-atm-main">
+            {/* Transaction Success Alert */}
+            <div className="clean-tx-banner">
+              <div className="clean-tx-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
               </div>
+              <div className="clean-tx-text">
+                <strong>Transaction Complete ({txReceiptNumber})</strong>
+                <span>Please collect your card and cash from the slots.</span>
+              </div>
+            </div>
 
-              <div className="atm-content-split">
-                {/* Left Side: On-Screen Touch Feedback */}
-                <div className="atm-touch-panel">
-                  <div className="panel-heading">
-                    <span className="step-tag">QUICK FEEDBACK</span>
-                    <h2>How was your ATM experience today?</h2>
-                    <p>Touch a rating to help GCB Bank maintain peak service quality.</p>
-                  </div>
+            {/* Split Content: On-Screen Touch (Left) & Mobile QR Code (Right) */}
+            <div className="clean-content-grid">
+              {/* Left: On-Screen Touch Feedback */}
+              <section className="clean-feedback-section">
+                <div className="clean-section-header">
+                  <h2>How was your ATM experience today?</h2>
+                  <p>
+                    Please rate your service to help GCB Bank maintain high ATM availability and reliability.
+                  </p>
+                </div>
 
-                  {/* 5 Big Touch Rating Cards */}
-                  <div className="atm-rating-grid">
-                    {[
-                      { val: 5, label: 'Excellent', emoji: '🌟', sub: 'Fast & flawless' },
-                      { val: 4, label: 'Good', emoji: '👍', sub: 'Satisfactory' },
-                      { val: 3, label: 'Average', emoji: '😐', sub: 'Acceptable' },
-                      { val: 2, label: 'Poor', emoji: '👎', sub: 'Slow or issues' },
-                      { val: 1, label: 'Very Poor', emoji: '⚠️', sub: 'Failed or error' },
-                    ].map((item) => (
+                {/* Clean Rating Cards */}
+                <div className="clean-rating-list">
+                  {RATING_LEVELS.map((item) => (
+                    <button
+                      key={item.val}
+                      type="button"
+                      className={`clean-rating-btn ${overallRating === item.val ? 'active' : ''}`}
+                      onClick={() => {
+                        setOverallRating(item.val);
+                        setSubRatings({
+                          network_reliability: item.val,
+                          transaction_speed: item.val,
+                          cash_availability: item.val,
+                          security: item.val,
+                        });
+                      }}
+                    >
+                      <div className="rating-btn-left">
+                        <span className="rating-btn-stars">{item.stars}</span>
+                        <span className="rating-btn-label">{item.label}</span>
+                      </div>
+                      <span className="rating-btn-desc">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Quick Feedback Tags */}
+                <div className="clean-tags-wrapper">
+                  <span className="clean-tags-title">Quick reasons (optional):</span>
+                  <div className="clean-tags-container">
+                    {QUICK_TAGS.map((tag) => (
                       <button
-                        key={item.val}
+                        key={tag}
                         type="button"
-                        className={`atm-rating-card ${overallRating === item.val ? 'selected' : ''}`}
-                        onClick={() => {
-                          setOverallRating(item.val);
-                          // If tapping 5 stars directly, auto-select sub-metrics
-                          setSubRatings({
-                            network_reliability: item.val,
-                            transaction_speed: item.val,
-                            cash_availability: item.val,
-                            security: item.val,
-                          });
-                        }}
+                        className={`clean-tag-button ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                        onClick={() => handleTagToggle(tag)}
                       >
-                        <span className="rating-emoji">{item.emoji}</span>
-                        <span className="rating-label">{item.label}</span>
-                        <span className="rating-stars">{'★'.repeat(item.val)}</span>
-                        <span className="rating-sub">{item.sub}</span>
+                        {selectedTags.includes(tag) ? '✓ ' : ''}{tag}
                       </button>
                     ))}
                   </div>
+                </div>
 
-                  {/* Quick Tags / Reasons */}
-                  <div className="atm-tags-section">
-                    <span className="tags-label">Quickly tap any that apply:</span>
-                    <div className="tags-chips">
-                      {QUICK_TAGS.map((tag) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          className={`atm-tag-chip ${selectedTags.includes(tag) ? 'active' : ''}`}
-                          onClick={() => handleTagToggle(tag)}
-                        >
-                          {selectedTags.includes(tag) ? '✓ ' : '+ '}
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
+                {/* Primary Action Row */}
+                <div className="clean-actions">
+                  <button
+                    type="button"
+                    className="clean-btn-primary"
+                    disabled={submitting}
+                    onClick={() => submitAtmRating(overallRating)}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Feedback'}
+                  </button>
+                  <button
+                    type="button"
+                    className="clean-btn-secondary"
+                    onClick={() => setScreenState('idle')}
+                  >
+                    Skip & Return
+                  </button>
+                </div>
+              </section>
+
+              {/* Right: Clean Mobile QR Section */}
+              <aside className="clean-mobile-section">
+                <div className="clean-qr-card">
+                  <span className="clean-qr-tag">Prefer Your Phone?</span>
+                  <h3>Scan to Rate on Mobile</h3>
+                  <p>
+                    Use your phone camera to complete this survey or report an issue privately.
+                  </p>
+
+                  <div className="clean-qr-frame">
+                    {qrDataUrl ? (
+                      <img src={qrDataUrl} alt={`QR Code for ${machineCode}`} className="clean-qr-image" />
+                    ) : (
+                      <div className="clean-qr-loading">Generating QR...</div>
+                    )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="atm-actions-row">
-                    <button
-                      type="button"
-                      className="atm-btn-submit"
-                      disabled={submitting}
-                      onClick={() => submitAtmRating(overallRating)}
-                    >
-                      {submitting ? 'RECORDING RATING...' : 'TOUCH TO SUBMIT RATING →'}
-                    </button>
-                    <button
-                      type="button"
-                      className="atm-btn-skip"
-                      onClick={() => setScreenState('idle')}
-                    >
-                      Skip & Finish
-                    </button>
+                  <div className="clean-qr-footer">
+                    <span className="qr-machine-id">Terminal: {machineCode}</span>
+                    <span className="qr-url-text">{feedbackUrl || window.location.origin}</span>
                   </div>
                 </div>
 
-                {/* Right Side: Mobile QR Option */}
-                <div className="atm-mobile-panel">
-                  <div className="mobile-panel-header">
-                    <span className="mobile-badge">MOBILE OPTION</span>
-                    <h3>Prefer your phone?</h3>
-                    <p>Scan with your phone camera to give detailed feedback or report an issue privately.</p>
+                <div className="clean-ussd-info">
+                  <div className="clean-ussd-icon">📱</div>
+                  <div>
+                    <strong>USSD Service Available</strong>
+                    <p>Dial <code>*920#</code> from any mobile phone and select <em>ATM Feedback</em>.</p>
                   </div>
+                </div>
+              </aside>
+            </div>
+          </main>
+        )}
 
-                  <div className="atm-qr-card">
-                    {qrDataUrl ? (
-                      <img src={qrDataUrl} alt="ATM Mobile Feedback QR" className="atm-screen-qr" />
-                    ) : (
-                      <div className="qr-placeholder">Generating QR...</div>
-                    )}
-                    <div className="qr-caption">
-                      <strong>Point Camera Here</strong>
-                      <span>Direct link to {machineCode}</span>
-                    </div>
-                  </div>
+        {/* SCREEN STATE 2: Clean Professional Thank You Confirmation */}
+        {screenState === 'thankyou' && (
+          <main className="clean-atm-main clean-center-state">
+            <div className="clean-thankyou-box">
+              <div className="clean-success-icon">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <h1>Thank You for Banking with GCB Bank</h1>
+              <p className="clean-thankyou-lead">
+                Your feedback for terminal <strong>{machineCode}</strong> has been logged to branch operations.
+                We appreciate your time in helping us maintain dependable banking services.
+              </p>
 
-                  <div className="atm-ussd-card">
-                    <div className="ussd-dial-badge">OFFLINE / USSD</div>
-                    <div className="ussd-text">
-                      No smartphone? Dial <strong>*920#</strong> on any phone and select <strong>ATM Feedback</strong>.
-                    </div>
-                  </div>
+              <div className="clean-audit-chip">
+                <span>Rating: {'★'.repeat(overallRating)} ({overallRating}/5)</span>
+                <span>•</span>
+                <span>Logged at: {clock}</span>
+                <span>•</span>
+                <span>{currentMachine?.branch_name || 'Accra Main Branch'}</span>
+              </div>
+
+              <div className="clean-countdown-area">
+                <span className="clean-countdown-text">
+                  Returning to Welcome Screen in <strong>{countdown} seconds</strong>
+                </span>
+                <div className="clean-countdown-track">
+                  <div
+                    className="clean-countdown-fill"
+                    style={{ width: `${(countdown / 10) * 100}%` }}
+                  ></div>
                 </div>
               </div>
+
+              <button
+                type="button"
+                className="clean-btn-primary"
+                onClick={() => setScreenState('idle')}
+              >
+                Return to Welcome Screen
+              </button>
             </div>
-          )}
+          </main>
+        )}
 
-          {/* SCREEN CONTENT: 2. Thank You Screen with Countdown */}
-          {screenState === 'thankyou' && (
-            <div className="atm-screen-body atm-thankyou-screen">
-              <div className="thankyou-content">
-                <div className="thankyou-badge">✓ FEEDBACK RECEIVED</div>
-                <h1>Thank you for banking with GCB Bank!</h1>
-                <p className="thankyou-desc">
-                  Your rating for <strong>{machineCode}</strong> has been logged to the branch operations dashboard.
-                  Your input keeps our ATMs stocked with cash, secure, and reliable across Ghana.
-                </p>
+        {/* SCREEN STATE 3: Clean Welcome / Idle Screen */}
+        {screenState === 'idle' && (
+          <main className="clean-atm-main clean-center-state">
+            <div className="clean-welcome-card">
+              <img src={logo} alt="GCB Bank" className="clean-welcome-logo" />
+              <h1>Welcome to GCB Bank</h1>
+              <p className="clean-welcome-tag">Your Bank for Life • 24/7 ATM Services</p>
 
-                <div className="thankyou-kpi-pill">
-                  <span>Logged at: {clock}</span>
-                  <span>•</span>
-                  <span>Rating: {'★'.repeat(overallRating)} ({overallRating}/5)</span>
-                  <span>•</span>
-                  <span>Branch: {currentMachine?.branch_name || 'Accra Main'}</span>
+              <div className="clean-guidance-list">
+                <div className="clean-guidance-item">
+                  <span className="clean-guidance-bullet">1</span>
+                  <span>Insert your GCB, Visa, Mastercard, or Gh-Link card</span>
                 </div>
-
-                <div className="thankyou-countdown-box">
-                  <div className="countdown-label">
-                    Screen automatically resetting in <strong>{countdown}s</strong>
-                  </div>
-                  <div className="countdown-progress-bar">
-                    <div
-                      className="countdown-progress-fill"
-                      style={{ width: `${(countdown / 10) * 100}%` }}
-                    ></div>
-                  </div>
+                <div className="clean-guidance-item">
+                  <span className="clean-guidance-bullet">2</span>
+                  <span>Enter your secret 4-digit PIN while shielding the keypad</span>
                 </div>
+                <div className="clean-guidance-item">
+                  <span className="clean-guidance-bullet">3</span>
+                  <span>Select Cash Withdrawal, Balance Inquiry, or Mobile Money</span>
+                </div>
+              </div>
 
+              <div className="clean-welcome-actions">
                 <button
                   type="button"
-                  className="atm-btn-touch-return"
-                  onClick={() => setScreenState('idle')}
+                  className="clean-btn-primary"
+                  onClick={() => setScreenState('rating')}
                 >
-                  Touch Screen to Return to Welcome
+                  Simulate Cash Dispense & Complete Transaction →
                 </button>
               </div>
             </div>
-          )}
-
-          {/* SCREEN CONTENT: 3. Welcome / Idle Attract Screen */}
-          {screenState === 'idle' && (
-            <div className="atm-screen-body atm-welcome-screen">
-              <div className="welcome-hero">
-                <img src={logo} alt="GCB Bank" className="welcome-logo" />
-                <h1>WELCOME TO GCB BANK</h1>
-                <p className="welcome-tagline">Your Bank for Life • Available 24/7</p>
-
-                <div className="welcome-instructions-card">
-                  <div className="instruction-item">
-                    <span className="inst-icon">💳</span>
-                    <span>Please Insert Your GCB or Gh-Link ATM Card</span>
-                  </div>
-                  <div className="instruction-item">
-                    <span className="inst-icon">🔒</span>
-                    <span>Shield Keypad While Entering Your 4-Digit PIN</span>
-                  </div>
-                  <div className="instruction-item">
-                    <span className="inst-icon">📱</span>
-                    <span>Cardless / Mobile Money Withdrawal Available</span>
-                  </div>
-                </div>
-
-                <div className="welcome-demo-trigger">
-                  <button
-                    className="atm-btn-submit"
-                    onClick={() => setScreenState('rating')}
-                  >
-                    Simulate Customer Completing Cash Withdrawal →
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ATM Screen Footer / Ticker */}
-          <div className="atm-screen-footer">
-            <div className="footer-status-pills">
-              <span className="status-pill ok">● Cash Dispenser: READY</span>
-              <span className="status-pill ok">● Card Reader: ONLINE</span>
-              <span className="status-pill ok">● Network Link: SECURE</span>
-            </div>
-            <div className="footer-help">
-              GCB 24/7 Toll-Free: <strong>0800 422 422</strong> | WhatsApp: <strong>020 242 2422</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Physical ATM Bottom Hardware Panel (Bezel mode) */}
-        {enclosureMode && (
-          <div className="atm-hardware-panel">
-            <div className="slot-group">
-              <div className="hw-slot card-slot">
-                <div className="slot-light green"></div>
-                <div className="slot-opening"></div>
-                <span>CARD INSERTION</span>
-              </div>
-              <div className="hw-slot receipt-slot">
-                <div className="slot-opening wide"></div>
-                <span>RECEIPT</span>
-              </div>
-            </div>
-
-            <div className="hw-cash-dispenser">
-              <div className="dispenser-shutter">
-                <div className="cash-light green"></div>
-                <div className="shutter-door">CASH DISPENSER</div>
-              </div>
-              <span>TAKE CASH HERE</span>
-            </div>
-          </div>
+          </main>
         )}
+
+        {/* Professional Clean Footer */}
+        <footer className="clean-atm-footer">
+          <div className="clean-footer-support">
+            <span>24/7 Contact Centre: <strong>0800 422 422</strong> (Toll-Free) | WhatsApp: <strong>020 242 2422</strong></span>
+          </div>
+          <div className="clean-footer-legal">
+            <span>GCB Bank PLC • Regulated by Bank of Ghana</span>
+          </div>
+        </footer>
       </div>
     </div>
   );

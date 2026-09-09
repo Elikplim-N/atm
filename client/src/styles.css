@@ -557,3 +557,874 @@ form.stacked select {
     font-size: 19px;
   }
 }
+
+/* ==========================================================================
+   ATM SCREEN & KIOSK TERMINAL STYLES
+   ========================================================================== */
+
+.atm-kiosk-page {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.atm-kiosk-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 18px;
+  background: #ffffff;
+  border: 1px solid var(--gridline);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-label {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--brand-navy);
+}
+
+.atm-select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--baseline);
+  font-size: 13.5px;
+  background: #fff;
+  font-weight: 500;
+}
+
+.toolbar-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--brand-navy);
+  background: #fff;
+  color: var(--brand-navy);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background: var(--brand-navy-tint);
+}
+
+.toolbar-btn.active {
+  background: var(--brand-navy);
+  color: #fff;
+}
+
+.toolbar-btn.reset {
+  border-color: var(--brand-gold-deep);
+  color: var(--brand-gold-deep);
+}
+
+.toolbar-btn.reset:hover {
+  background: var(--brand-gold-tint);
+}
+
+/* ATM Physical Enclosure */
+.atm-enclosure {
+  background: #252830;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.atm-enclosure.has-bezel {
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35), 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 8px solid #3c404d;
+  background: linear-gradient(180deg, #1f232b 0%, #2a2e39 100%);
+}
+
+.atm-enclosure.borderless {
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+/* ATM Top Fascia */
+.atm-fascia {
+  padding: 16px 28px;
+  background: linear-gradient(90deg, #071d42 0%, #0a2a5e 60%, #071d42 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 4px solid var(--brand-gold);
+}
+
+.atm-fascia-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fascia-logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.fascia-bank-name {
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.fascia-sub {
+  font-size: 11px;
+  color: var(--brand-gold);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.atm-security-camera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #a0aec0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.camera-lens {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #4a5568;
+  position: relative;
+}
+
+.camera-lens::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 3px;
+  height: 3px;
+  background: #e53e3e;
+  border-radius: 50%;
+  animation: cameraBlink 1.5s infinite;
+}
+
+@keyframes cameraBlink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ATM Screen Container (The Monitor) */
+.atm-screen-container {
+  background: #081730;
+  color: #f7fafc;
+  display: flex;
+  flex-direction: column;
+  min-height: 540px;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.7);
+}
+
+/* Screen Header */
+.atm-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #051022;
+  border-bottom: 2px solid rgba(212, 160, 23, 0.4);
+}
+
+.atm-brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.screen-logo {
+  height: 24px;
+  width: auto;
+}
+
+.atm-screen-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.atm-machine-badge {
+  background: var(--brand-gold);
+  color: #000;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.atm-branch-name {
+  color: #cbd5e0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.atm-screen-datetime {
+  display: flex;
+  gap: 12px;
+  color: #a0aec0;
+  font-size: 12.5px;
+  font-family: monospace;
+}
+
+.atm-clock {
+  color: var(--brand-gold);
+  font-weight: bold;
+}
+
+/* Screen Body & Transaction Banner */
+.atm-screen-body {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.atm-tx-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(90deg, #10482d 0%, #15623d 100%);
+  border: 1px solid #1fa366;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+}
+
+.tx-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.tx-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #e6fffa;
+  letter-spacing: 0.5px;
+}
+
+.tx-sub {
+  font-size: 12px;
+  color: #a7f3d0;
+}
+
+/* Split Content */
+.atm-content-split {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .atm-content-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Touch Panel */
+.atm-touch-panel {
+  background: rgba(14, 38, 77, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-heading {
+  margin-bottom: 16px;
+}
+
+.step-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brand-gold);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.panel-heading h2 {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.panel-heading p {
+  margin: 0;
+  font-size: 13px;
+  color: #cbd5e0;
+}
+
+/* 5 Big Touch Rating Cards */
+.atm-rating-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 650px) {
+  .atm-rating-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.atm-rating-card {
+  background: #11284d;
+  border: 2px solid #23457a;
+  border-radius: 10px;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 100px;
+}
+
+.atm-rating-card:hover {
+  background: #183b70;
+  border-color: var(--brand-gold);
+  transform: translateY(-2px);
+}
+
+.atm-rating-card.selected {
+  background: linear-gradient(180deg, #18417c 0%, #0d2a54 100%);
+  border-color: var(--brand-gold);
+  box-shadow: 0 0 16px rgba(212, 160, 23, 0.4), inset 0 0 10px rgba(212, 160, 23, 0.2);
+}
+
+.rating-emoji {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.rating-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rating-stars {
+  color: var(--brand-gold);
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin: 2px 0;
+}
+
+.rating-sub {
+  font-size: 10px;
+  color: #a0aec0;
+  text-align: center;
+}
+
+/* Tags Section */
+.atm-tags-section {
+  margin-bottom: 20px;
+}
+
+.tags-label {
+  display: block;
+  font-size: 12px;
+  color: #a0aec0;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.tags-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atm-tag-chip {
+  background: #0f2344;
+  border: 1px solid #27477c;
+  color: #e2e8f0;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.atm-tag-chip:hover {
+  background: #19386b;
+}
+
+.atm-tag-chip.active {
+  background: var(--brand-navy-tint);
+  color: var(--brand-navy);
+  border-color: var(--brand-gold);
+  font-weight: 600;
+}
+
+/* Actions Row */
+.atm-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.atm-btn-submit {
+  flex: 1;
+  background: linear-gradient(180deg, #dfa818 0%, #b8850d 100%);
+  color: #071d42;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.35);
+  transition: all 0.15s ease;
+}
+
+.atm-btn-submit:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ecc144 0%, #c99313 100%);
+  transform: translateY(-1px);
+}
+
+.atm-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.atm-btn-skip {
+  background: transparent;
+  color: #a0aec0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.atm-btn-skip:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Right Side: Mobile QR Panel */
+.atm-mobile-panel {
+  background: #0d1e3d;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mobile-badge {
+  background: rgba(212, 160, 23, 0.15);
+  color: var(--brand-gold);
+  border: 1px solid rgba(212, 160, 23, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.mobile-panel-header h3 {
+  margin: 8px 0 4px 0;
+  font-size: 17px;
+  color: #fff;
+}
+
+.mobile-panel-header p {
+  margin: 0 0 14px 0;
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.atm-qr-card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 14px;
+  width: 100%;
+  max-width: 220px;
+}
+
+.atm-screen-qr {
+  width: 180px;
+  height: 180px;
+  display: block;
+}
+
+.qr-placeholder {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #718096;
+  font-size: 12px;
+}
+
+.qr-caption {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.qr-caption strong {
+  display: block;
+  font-size: 12.5px;
+  color: #1a202c;
+}
+
+.qr-caption span {
+  font-size: 11px;
+  color: #718096;
+}
+
+.atm-ussd-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.ussd-dial-badge {
+  font-size: 9.5px;
+  color: var(--brand-gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ussd-text {
+  font-size: 11.5px;
+  color: #cbd5e0;
+}
+
+.ussd-text strong {
+  color: #fff;
+}
+
+/* Thank You Screen */
+.atm-thankyou-screen {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.thankyou-content {
+  max-width: 600px;
+  padding: 40px 20px;
+}
+
+.thankyou-badge {
+  display: inline-block;
+  background: #15803d;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.thankyou-content h1 {
+  font-size: 28px;
+  color: #fff;
+  margin: 0 0 12px 0;
+}
+
+.thankyou-desc {
+  font-size: 14.5px;
+  color: #cbd5e0;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.thankyou-kpi-pill {
+  display: inline-flex;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  color: #e2e8f0;
+  margin-bottom: 30px;
+}
+
+.thankyou-countdown-box {
+  margin-bottom: 28px;
+}
+
+.countdown-label {
+  font-size: 13px;
+  color: #a0aec0;
+  margin-bottom: 8px;
+}
+
+.countdown-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.countdown-progress-fill {
+  height: 100%;
+  background: var(--brand-gold);
+  transition: width 1s linear;
+}
+
+.atm-btn-touch-return {
+  background: transparent;
+  color: var(--brand-gold);
+  border: 1px solid var(--brand-gold);
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Welcome Idle Screen */
+.atm-welcome-screen {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.welcome-hero {
+  max-width: 580px;
+  padding: 40px 20px;
+}
+
+.welcome-logo {
+  height: 64px;
+  width: auto;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.welcome-hero h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+  margin: 0 0 6px 0;
+}
+
+.welcome-tagline {
+  color: var(--brand-gold);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 28px 0;
+}
+
+.welcome-instructions-card {
+  background: rgba(14, 38, 77, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.inst-icon {
+  font-size: 20px;
+}
+
+/* ATM Screen Footer */
+.atm-screen-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #040c1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px;
+}
+
+.footer-status-pills {
+  display: flex;
+  gap: 14px;
+}
+
+.status-pill.ok {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.footer-help {
+  color: #718096;
+}
+
+.footer-help strong {
+  color: var(--brand-gold);
+}
+
+/* ATM Bottom Hardware Panel */
+.atm-hardware-panel {
+  padding: 24px 36px;
+  background: linear-gradient(180deg, #1a1d24 0%, #121418 100%);
+  border-top: 4px solid #3c404d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.slot-group {
+  display: flex;
+  gap: 24px;
+}
+
+.hw-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-slot span {
+  font-size: 9.5px;
+  color: #718096;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.slot-light.green {
+  width: 14px;
+  height: 4px;
+  background: #22c55e;
+  border-radius: 2px;
+  box-shadow: 0 0 8px #22c55e;
+  animation: slotPulse 1.8s infinite;
+}
+
+@keyframes slotPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.slot-opening {
+  width: 90px;
+  height: 8px;
+  background: #000;
+  border-radius: 4px;
+  border: 1px solid #3c404d;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.slot-opening.wide {
+  width: 110px;
+}
+
+.hw-cash-dispenser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-cash-dispenser span {
+  font-size: 9.5px;
+  color: #718096;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.dispenser-shutter {
+  width: 160px;
+  height: 28px;
+  background: #0a0b0d;
+  border: 2px solid #3c404d;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.9);
+}
+
+.cash-light.green {
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.shutter-door {
+  font-size: 10px;
+  color: #4a5568;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+

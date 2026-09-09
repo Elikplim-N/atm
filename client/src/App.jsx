@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import FeedbackForm from './pages/FeedbackForm.jsx';
 import Simulator from './pages/Simulator.jsx';
+import AtmScreen from './pages/AtmScreen.jsx';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 
@@ -24,7 +25,9 @@ export default function App() {
       <Navbar isAuthed={!!token} onLogout={handleLogout} />
       <div className="page">
         <Routes>
-          <Route path="/" element={<Navigate to="/feedback" replace />} />
+          <Route path="/" element={<Navigate to="/atm-screen" replace />} />
+          <Route path="/atm-screen" element={<AtmScreen />} />
+          <Route path="/kiosk" element={<AtmScreen />} />
           <Route path="/feedback" element={<FeedbackForm />} />
           <Route path="/simulator" element={<Simulator />} />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />

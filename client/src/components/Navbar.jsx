@@ -16,8 +16,11 @@ export default function Navbar({ isAuthed, onLogout }) {
         </span>
       </div>
       <nav>
+        <NavLink to="/atm-screen" className={({ isActive }) => (isActive ? 'active' : '')}>
+          🏧 ATM Screen
+        </NavLink>
         <NavLink to="/feedback" className={({ isActive }) => (isActive ? 'active' : '')}>
-          Feedback Form
+          📱 Mobile Form
         </NavLink>
         <NavLink to="/simulator" className={({ isActive }) => (isActive ? 'active' : '')}>
           USSD/SMS Simulator

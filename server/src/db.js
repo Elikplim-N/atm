@@ -6,7 +6,15 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required (see server/.env.example)');
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// A serverless function can run many concurrent container instances, each
+// holding its own pool — keep each pool small so a traffic spike doesn't
+// exhaust the database's max_connections. DB_POOL_MAX defaults to 3, which
+// is conservative for a small self-hosted Postgres instance.
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: process.env.DB_POOL_MAX ? Number(process.env.DB_POOL_MAX) : 3,
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+});
 
 export async function query(text, params) {
   return pool.query(text, params);

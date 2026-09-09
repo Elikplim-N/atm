@@ -1,6 +1,13 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api' });
+// In local dev, requests to /api are proxied to the local server (see
+// vite.config.js). On Vercel the client and server are separate projects on
+// separate domains, so VITE_API_URL must point at the deployed server.
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
+  : '/api';
+
+const api = axios.create({ baseURL });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('atm_admin_token');

@@ -56,6 +56,61 @@ long as the user in the connection string can create tables in it.
 
 Demo admin login for the dashboard: `admin@gcb.example` / `ChangeMe123!`
 
+## Deploying to Vercel
+
+The client and server deploy as **two separate Vercel projects** from this one
+repo, using Vercel's "Root Directory" setting — this is more robust than one
+monorepo config, since each project is then a standard, auto-detected Vercel
+app (Vite static site / Node serverless function) rather than a hand-rolled
+multi-build setup.
+
+Import this repo into Vercel twice:
+
+**1. Server project** — Root Directory: `server`
+
+Vercel auto-detects `server/api/index.js` as a serverless function
+(`server/vercel.json` rewrites every request to it, so the Express app inside
+still sees the full original path). Set these environment variables in the
+Vercel project settings:
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | Your Postgres connection string |
+| `JWT_SECRET` | A long random string (not the dev default) |
+| `PUBLIC_WEB_URL` | The **client** project's URL, e.g. `https://gcb-atm.vercel.app` (embedded in generated QR codes) |
+| `CORS_ORIGIN` | Same as `PUBLIC_WEB_URL` — restricts the API to that origin |
+| `DATABASE_SSL` | `true` if your Postgres provider requires TLS (most managed services do; a self-hosted VPS Postgres usually doesn't) |
+| `DB_POOL_MAX` | `3` (optional; keeps each function instance's connection pool small — see note below) |
+
+**2. Client project** — Root Directory: `client`
+
+Vercel auto-detects Vite. Set:
+
+| Variable | Value |
+|---|---|
+| `VITE_API_URL` | The **server** project's URL, e.g. `https://gcb-atm-server.vercel.app` |
+
+`client/vercel.json` adds a SPA fallback rewrite — needed because the QR code
+and USSD/SMS flows link straight to `/feedback`, not the app root, and without
+it a direct load of that URL would 404.
+
+**After both are deployed**, run the seed script once from your own machine
+(not as part of the Vercel build — it's a one-time setup step) against the
+same `DATABASE_URL`:
+
+```bash
+cd server
+DATABASE_URL="<your connection string>" npm run seed
+```
+
+**On the serverless model:** each function invocation may run in a fresh
+container, so `server/api/index.js` initializes the database schema once per
+container (not per request) and reuses a small connection pool across warm
+invocations. Cold starts add one extra round trip to the database; this is
+fine for a demo/prototype at this scale but worth knowing about. If you see
+"too many connections" errors under load, lower `DB_POOL_MAX` further or put
+a pooler (e.g. PgBouncer) in front of Postgres.
+
 ## Key flows to try
 
 - **`/feedback?machine=ATM-ACC-01`** — the public form a customer sees after scanning

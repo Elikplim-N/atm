@@ -1428,3 +1428,181 @@ form.stacked select {
   letter-spacing: 1px;
 }
 
+/* ==========================================================================
+   MOBILE ORIENTATION WARNING & RESPONSIVE POLISH
+   ========================================================================== */
+
+.atm-orientation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 12, 26, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.atm-orientation-card {
+  background: linear-gradient(180deg, #0d2244 0%, #07152b 100%);
+  border: 2px solid var(--brand-gold);
+  border-radius: 16px;
+  padding: 28px 20px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 160, 23, 0.3);
+}
+
+.phone-rotate-anim {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 14px auto;
+}
+
+.rotate-device-icon {
+  width: 100%;
+  height: 100%;
+  animation: rotatePhoneAnim 2.2s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes rotatePhoneAnim {
+  0%, 15% {
+    transform: rotate(0deg);
+  }
+  50%, 75% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.orientation-chip {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--brand-gold);
+  background: rgba(212, 160, 23, 0.15);
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(212, 160, 23, 0.35);
+}
+
+.atm-orientation-card h3 {
+  margin: 0 0 10px 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.atm-orientation-card p {
+  color: #cbd5e0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0 0 22px 0;
+}
+
+.orientation-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-rotate-mobile {
+  background: linear-gradient(180deg, #dfa818 0%, #b8850d 100%);
+  color: #071d42;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.btn-rotate-mobile:hover {
+  transform: translateY(-1px);
+}
+
+.btn-rotate-dismiss {
+  background: transparent;
+  color: #a0aec0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-rotate-dismiss:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile responsive layout improvements for ATM screen */
+@media (max-width: 860px) {
+  .atm-kiosk-page {
+    padding: 8px;
+  }
+
+  .atm-fascia {
+    padding: 10px 14px;
+  }
+
+  .fascia-bank-name {
+    font-size: 14px;
+  }
+
+  .fascia-sub {
+    font-size: 9px;
+  }
+
+  .atm-screen-header {
+    padding: 10px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .atm-screen-datetime {
+    width: 100%;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 6px;
+  }
+
+  .atm-screen-body {
+    padding: 14px;
+  }
+
+  .panel-heading h2 {
+    font-size: 17px;
+  }
+
+  .atm-rating-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .atm-hardware-panel {
+    padding: 14px 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .slot-group {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
+

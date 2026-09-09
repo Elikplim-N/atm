@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import logo from '../assets/gcb-logo.png';
 
@@ -15,6 +15,7 @@ const QUICK_TAGS = [
 ];
 
 export default function AtmScreen() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const machineParam = searchParams.get('machine') || 'ATM-ACC-01';
 
@@ -27,6 +28,10 @@ export default function AtmScreen() {
   const [currentDate, setCurrentDate] = useState(
     new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
   );
+
+  // Mobile orientation detection
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const [dismissOrientationWarning, setDismissOrientationWarning] = useState(false);
 
   // Screen flow: 'idle' (welcome/attract) -> 'rating' (post-tx feedback prompt) -> 'thankyou' (confirmation)
   const [screenState, setScreenState] = useState('rating');
@@ -53,6 +58,22 @@ export default function AtmScreen() {
       setClock(new Date().toLocaleTimeString());
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Detect mobile portrait orientation
+  useEffect(() => {
+    function checkOrientation() {
+      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+      const isNarrow = window.innerWidth <= 860;
+      setIsPortraitMobile(isPortrait && isNarrow);
+    }
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
   }, []);
 
   // Fetch machines list for switcher
@@ -142,6 +163,45 @@ export default function AtmScreen() {
 
   return (
     <div className="atm-kiosk-page">
+      {/* Mobile Portrait Orientation Prompt */}
+      {isPortraitMobile && !dismissOrientationWarning && (
+        <div className="atm-orientation-overlay">
+          <div className="atm-orientation-card">
+            <div className="phone-rotate-anim">
+              <svg viewBox="0 0 80 80" className="rotate-device-icon" fill="none">
+                <rect x="24" y="10" width="32" height="60" rx="6" stroke="#d4a017" strokeWidth="3.5" />
+                <circle cx="40" cy="62" r="2.5" fill="#d4a017" />
+                <line x1="34" y1="16" x2="46" y2="16" stroke="#d4a017" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M62 26 C72 38, 72 48, 62 60" stroke="#63b3ed" strokeWidth="3" strokeLinecap="round" strokeDasharray="3 3" />
+                <polygon points="60,62 68,58 65,67" fill="#63b3ed" />
+              </svg>
+            </div>
+            <span className="orientation-chip">ATM HARDWARE SCREEN</span>
+            <h3>Please Turn Your Screen Horizontal</h3>
+            <p>
+              Bank ATM screens operate on horizontal (landscape) monitors.
+              Rotate your phone horizontally to experience the real ATM touch terminal.
+            </p>
+            <div className="orientation-btn-group">
+              <button
+                type="button"
+                className="btn-rotate-mobile"
+                onClick={() => navigate(`/feedback?machine=${machineCode}`)}
+              >
+                📱 Open Mobile Form Instead
+              </button>
+              <button
+                type="button"
+                className="btn-rotate-dismiss"
+                onClick={() => setDismissOrientationWarning(true)}
+              >
+                View in Portrait Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Simulator Controls Toolbar */}
       <div className="atm-kiosk-toolbar">
         <div className="toolbar-left">

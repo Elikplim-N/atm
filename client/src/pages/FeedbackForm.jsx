@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api.js';
+import Loader from '../components/Loader.jsx';
 
 const QUESTIONS = [
   { key: 'network_reliability', label: 'How reliable was the network?' },
@@ -182,7 +183,7 @@ export default function FeedbackForm() {
                       />
                     </label>
                     <button className="btn-primary" type="submit" disabled={status === 'submitting'}>
-                      {status === 'submitting' ? 'Submitting…' : 'Submit feedback'}
+                      {status === 'submitting' ? <Loader inline label="Submitting…" /> : 'Submit feedback'}
                     </button>
                   </form>
                 )}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import logo from '../assets/gcb-logo.png';
+import Loader from '../components/Loader.jsx';
 
 const QUICK_TAGS = [
   'Cash dispensed promptly',
@@ -54,6 +55,7 @@ export default function AtmScreen() {
     security: 5,
   });
   const [selectedTags, setSelectedTags] = useState([]);
+  const [contact, setContact] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [txReceiptNumber] = useState(() => `TXN-${Math.floor(100000 + Math.random() * 900000)}`);
@@ -120,10 +122,29 @@ export default function AtmScreen() {
     };
   }, [screenState]);
 
+  // Clears the rating form, including the phone number — this is a shared kiosk,
+  // so nothing from one customer's session should carry into the next one's.
+  function resetRatingForm() {
+    setOverallRating(5);
+    setSubRatings({
+      network_reliability: 5,
+      transaction_speed: 5,
+      cash_availability: 5,
+      security: 5,
+    });
+    setSelectedTags([]);
+    setContact('');
+  }
+
+  function startNewTransaction() {
+    resetRatingForm();
+    setScreenState('rating');
+  }
+
   function handleMachineChange(newCode) {
     setMachineCode(newCode);
     setSearchParams({ machine: newCode });
-    setScreenState('rating');
+    startNewTransaction();
   }
 
   function handleTagToggle(tag) {
@@ -148,6 +169,7 @@ export default function AtmScreen() {
           selectedTags.length > 0
             ? `ATM Kiosk: ${selectedTags.join(', ')}`
             : 'ATM Kiosk On-Screen Feedback',
+        contact: contact || undefined,
       });
       setScreenState('thankyou');
     } catch (err) {
@@ -182,7 +204,7 @@ export default function AtmScreen() {
           <button
             type="button"
             className="clean-action-link"
-            onClick={() => setScreenState('rating')}
+            onClick={startNewTransaction}
           >
             New Transaction
           </button>
@@ -291,6 +313,18 @@ export default function AtmScreen() {
                   </div>
                 </div>
 
+                {/* Optional phone number, for an SMS confirmation */}
+                <label className="clean-contact-field">
+                  <span>Phone number (optional — get an SMS confirmation)</span>
+                  <input
+                    type="tel"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="024…"
+                    autoComplete="off"
+                  />
+                </label>
+
                 {/* Primary Action Row */}
                 <div className="clean-actions">
                   <button
@@ -299,7 +333,7 @@ export default function AtmScreen() {
                     disabled={submitting}
                     onClick={() => submitAtmRating(overallRating)}
                   >
-                    {submitting ? 'Submitting...' : 'Submit Feedback'}
+                    {submitting ? <Loader inline label="Submitting…" /> : 'Submit Feedback'}
                   </button>
                   <button
                     type="button"
@@ -324,21 +358,13 @@ export default function AtmScreen() {
                     {qrDataUrl ? (
                       <img src={qrDataUrl} alt={`QR Code for ${machineCode}`} className="clean-qr-image" />
                     ) : (
-                      <div className="clean-qr-loading">Generating QR...</div>
+                      <Loader />
                     )}
                   </div>
 
                   <div className="clean-qr-footer">
                     <span className="qr-machine-id">Terminal: {machineCode}</span>
                     <span className="qr-url-text">{feedbackUrl || window.location.origin}</span>
-                  </div>
-                </div>
-
-                <div className="clean-ussd-info">
-                  <div className="clean-ussd-icon">📱</div>
-                  <div>
-                    <strong>USSD Service Available</strong>
-                    <p>Dial <code>*920#</code> from any mobile phone and select <em>ATM Feedback</em>.</p>
                   </div>
                 </div>
               </aside>
@@ -420,7 +446,7 @@ export default function AtmScreen() {
                 <button
                   type="button"
                   className="clean-btn-primary"
-                  onClick={() => setScreenState('rating')}
+                  onClick={startNewTransaction}
                 >
                   Continue to Transaction →
                 </button>

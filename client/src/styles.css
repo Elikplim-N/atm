@@ -872,6 +872,35 @@ form.stacked select {
   margin-bottom: 24px;
 }
 
+/* Optional phone number field on the on-screen rating flow */
+.clean-contact-field {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.clean-contact-field span {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.clean-contact-field input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-primary);
+}
+
+.clean-contact-field input:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 1px;
+}
+
 .clean-tags-title {
   display: block;
   font-size: 12.5px;
@@ -1014,16 +1043,6 @@ form.stacked select {
   display: block;
 }
 
-.clean-qr-loading {
-  width: 170px;
-  height: 170px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
 .clean-qr-footer {
   display: flex;
   flex-direction: column;
@@ -1040,42 +1059,6 @@ form.stacked select {
   font-size: 11px;
   color: var(--text-muted);
   word-break: break-all;
-}
-
-.clean-ussd-info {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-}
-
-.clean-ussd-icon {
-  font-size: 22px;
-}
-
-.clean-ussd-info strong {
-  display: block;
-  font-size: 12.5px;
-  color: var(--brand-navy);
-  margin-bottom: 2px;
-}
-
-.clean-ussd-info p {
-  margin: 0;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-}
-
-.clean-ussd-info code {
-  background: #f1f5f9;
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-weight: 600;
-  color: var(--brand-navy);
 }
 
 /* Thank You & Welcome States */
@@ -1251,5 +1234,108 @@ form.stacked select {
   }
 }
 
+/* Branded loader: GCB logo with a slow pulsing ring, used anywhere the app
+   is waiting on a request (page data, feedback submission, SMS dispatch). */
+.gcb-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 16px;
+}
+
+.gcb-loader-inline {
+  flex-direction: row;
+  padding: 0;
+  gap: 8px;
+}
+
+.gcb-loader-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gcb-loader-inline .gcb-loader-ring {
+  width: 22px;
+  height: 22px;
+}
+
+.gcb-loader-ring::before,
+.gcb-loader-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  border-top-color: var(--brand-gold);
+  border-right-color: var(--brand-gold);
+  animation: gcb-loader-spin 1.1s linear infinite;
+}
+
+.gcb-loader-ring::after {
+  inset: -6px;
+  border-top-color: var(--brand-navy);
+  border-right-color: transparent;
+  border-left-color: var(--brand-navy);
+  opacity: 0.35;
+  animation-duration: 1.7s;
+  animation-direction: reverse;
+}
+
+.gcb-loader-inline .gcb-loader-ring::after {
+  inset: -4px;
+}
+
+.gcb-loader-logo {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+  padding: 4px;
+  animation: gcb-loader-pulse 1.8s ease-in-out infinite;
+}
+
+.gcb-loader-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.gcb-loader-inline .gcb-loader-label {
+  font-size: 0.85rem;
+}
+
+@keyframes gcb-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gcb-loader-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gcb-loader-ring::before,
+  .gcb-loader-ring::after,
+  .gcb-loader-logo {
+    animation: none;
+  }
+}
 
 

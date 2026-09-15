@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { waitUntil } from '@vercel/functions';
 import { query, maskContact } from '../db.js';
 import { sendSms } from '../services/arkesel.js';
 import { getRequestOrigin } from '../utils/http.js';
@@ -56,10 +57,14 @@ router.post('/', async (req, res, next) => {
     if (contact) {
       const origin = getRequestOrigin(req);
       const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
-      await sendSms(
-        contact,
-        `Thank you for rating ${machine.trim().toUpperCase()}! Your feedback helps us improve ATM service quality. - GCB`,
-        callbackUrl
+      // Sent in the background so the response doesn't wait on Arkesel's API —
+      // waitUntil keeps the function alive to finish it after the response is sent.
+      waitUntil(
+        sendSms(
+          contact,
+          `Thank you for rating ${machine.trim().toUpperCase()}! Your feedback helps us improve ATM service quality. - GCB`,
+          callbackUrl
+        )
       );
     }
 

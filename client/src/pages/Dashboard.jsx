@@ -4,6 +4,7 @@ import StatCard from '../components/StatCard.jsx';
 import TrendChart from '../components/TrendChart.jsx';
 import BranchBarChart from '../components/BranchBarChart.jsx';
 import AlertsTable from '../components/AlertsTable.jsx';
+import Loader from '../components/Loader.jsx';
 
 const RANGE_OPTIONS = [
   { label: 'Last 7 days', days: 7 },
@@ -125,7 +126,7 @@ export default function Dashboard() {
       </div>
 
       {loading && !summary ? (
-        <p className="helper-text">Loading dashboard…</p>
+        <Loader label="Loading dashboard…" />
       ) : (
         <>
           <div className="grid stats">

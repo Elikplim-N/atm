@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { waitUntil } from '@vercel/functions';
 import { query, maskContact } from '../db.js';
 import { sendSms } from '../services/arkesel.js';
 import { getRequestOrigin } from '../utils/http.js';
@@ -64,10 +65,12 @@ router.post('/', async (req, res, next) => {
     if (phoneNumber) {
       const origin = getRequestOrigin(req);
       const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
-      await sendSms(
-        phoneNumber,
-        `Thank you! Your feedback for ${machineCode} has been recorded. - GCB`,
-        callbackUrl
+      waitUntil(
+        sendSms(
+          phoneNumber,
+          `Thank you! Your feedback for ${machineCode} has been recorded. - GCB`,
+          callbackUrl
+        )
       );
     }
 

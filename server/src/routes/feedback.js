@@ -58,7 +58,7 @@ router.post('/', async (req, res, next) => {
       const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
       await sendSms(
         contact,
-        `GCB Bank: Thank you for rating ${machine.trim().toUpperCase()}! Your feedback helps us improve ATM service quality.`,
+        `Thank you for rating ${machine.trim().toUpperCase()}! Your feedback helps us improve ATM service quality. - GCB`,
         callbackUrl
       );
     }

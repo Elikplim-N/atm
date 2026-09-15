@@ -26,10 +26,14 @@ atm/
   client/   React + Vite — public feedback form, USSD/SMS/QR simulator, admin dashboard
 ```
 
-No paid telecom integration is required to demo this: the USSD and SMS endpoints
-implement the same request/response contract a real gateway (e.g. Africa's Talking)
-would call, so swapping in a live gateway later is a routing change, not a rewrite.
-The QR code embedded per ATM points straight at the web feedback form.
+No paid telecom integration is required to demo the *inbound* USSD/SMS flows: those
+endpoints implement the same request/response contract a real gateway (e.g. Africa's
+Talking) would call, so swapping one in later is a routing change, not a rewrite.
+*Outbound* SMS is real, though — the confirmation sent after a customer's feedback is
+recorded, and the "Send SMS alert to management" button on the dashboard, both go out
+through [Arkesel](https://arkesel.com) when `ARKESEL_API_KEY` is set (see
+[SMS integration](#sms-integration-arkesel) below). The QR code embedded per ATM
+points straight at the web feedback form.
 
 ## Running locally
 
@@ -81,6 +85,9 @@ Vercel project settings:
 | `CORS_ORIGIN` | Same as `PUBLIC_WEB_URL` — restricts the API to that origin |
 | `DATABASE_SSL` | `true` if your Postgres provider requires TLS (most managed services do; a self-hosted VPS Postgres usually doesn't) |
 | `DB_POOL_MAX` | `3` (optional; keeps each function instance's connection pool small — see note below) |
+| `ARKESEL_API_KEY` | Optional — enables real outbound SMS. See [SMS integration](#sms-integration-arkesel) |
+| `ARKESEL_SENDER_ID` | Optional, defaults to `GCB` — must be a sender ID already approved with Arkesel |
+| `ALERT_PHONE_NUMBERS` | Optional, comma-separated — recipients for the dashboard's SMS alert button |
 
 **2. Client project** — Root Directory: `client`
 
@@ -125,12 +132,14 @@ a pooler (e.g. PgBouncer) in front of Postgres.
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /api/feedback` | Web form submission (public) |
-| `POST /api/ussd` | Simulated USSD gateway callback (public) |
-| `POST /api/sms` | Simulated inbound SMS (public) |
+| `POST /api/feedback` | Web form submission (public); sends a real confirmation SMS if a phone number was given |
+| `POST /api/ussd` | Simulated USSD gateway callback (public); sends a real confirmation SMS on completion |
+| `POST /api/sms` | Simulated inbound SMS (public); sends a real confirmation SMS in reply |
+| `GET /api/sms/delivery-callback` | Arkesel delivery-status callback (public, unauthenticated — see below) |
 | `GET /api/machines/:code/qrcode` | Per-ATM QR code linking to the feedback form |
 | `POST /api/auth/login` | Admin login, returns a JWT |
 | `GET /api/dashboard/summary` \| `/trends` \| `/branches` \| `/machines` \| `/alerts` \| `/recent` | Dashboard data (requires the admin JWT) |
+| `POST /api/dashboard/alerts/notify` | Sends the current alert list as an SMS to `ALERT_PHONE_NUMBERS` (requires the admin JWT) |
 
 ## Branding
 
@@ -142,11 +151,41 @@ file, padded onto a navy square, for the browser tab icon. Brand colors are CSS
 custom properties (`--brand-navy`, `--brand-gold`, ...) in `client/src/styles.css`
 — update those if GCB's brand guide specifies different hex values.
 
+## SMS integration (Arkesel)
+
+Outbound SMS goes through [Arkesel](https://arkesel.com)'s v2 API
+(`services/arkesel.js`) whenever `ARKESEL_API_KEY` is set; without it, sends are
+skipped and logged rather than failing whatever triggered them. Two things send
+real SMS today:
+
+1. **Feedback confirmation** — after a submission via the web form, USSD, or the
+   simulated SMS channel, if a phone number was given, a "thank you" SMS goes out.
+2. **Management alert** — the "Send SMS alert to management" button on the
+   dashboard sends the current underperforming-ATM list to every number in
+   `ALERT_PHONE_NUMBERS`. It's a manual trigger rather than a scheduled job because
+   a serverless deployment has no long-running process to run a periodic job from.
+
+**What this key does *not* give you: genuine two-way SMS.** A customer replying to
+one of these messages, or texting a keyword in to complete a survey, needs a
+dedicated Arkesel short code — a separate product, provisioned per request and
+only available for Ghana numbers. A plain API key only buys sending plus delivery
+*status* callbacks. So `POST /api/sms` (the inbound side) stays a simulated
+endpoint matching a real gateway's shape, same as `/api/ussd` — the outbound
+confirmation it now sends is the real part.
+
+Delivery status for a sent message arrives at `GET /api/sms/delivery-callback` as
+`?sms_id=...&status=...`. Arkesel's callback is a plain, unsigned GET with no
+authentication of its own, so that handler only ever logs what it receives — it
+never uses the callback to drive a write or a business decision, and callers
+should treat that data the same way if they build on top of it.
+
 ## Notes on scope
 
 This is a working prototype built to demonstrate the proposal end-to-end, not a
-production banking system: auth is a single seeded admin account, and USSD/SMS are
-simulated rather than wired to a live telco aggregator. Each of those is a swap-in,
-not a redesign, when moving toward production (e.g. an Africa's Talking/similar
-account for real USSD/SMS, proper admin user management, connection pooling tuned
-for the deployment target).
+production banking system: auth is a single seeded admin account, and USSD and
+inbound SMS are simulated rather than wired to a live telco aggregator (see
+[SMS integration](#sms-integration-arkesel) above for what *is* real). Each of
+those is a swap-in, not a redesign, when moving toward production (e.g. an
+Africa's Talking/similar account for real USSD, an Arkesel short code for real
+inbound SMS, proper admin user management, connection pooling tuned for the
+deployment target).

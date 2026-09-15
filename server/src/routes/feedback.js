@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { query, maskContact } from '../db.js';
+import { sendSms } from '../services/arkesel.js';
+import { getRequestOrigin } from '../utils/http.js';
 
 const router = Router();
 
@@ -50,6 +52,16 @@ router.post('/', async (req, res, next) => {
         maskContact(contact),
       ]
     );
+
+    if (contact) {
+      const origin = getRequestOrigin(req);
+      const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
+      await sendSms(
+        contact,
+        `GCB Bank: Thank you for rating ${machine.trim().toUpperCase()}! Your feedback helps us improve ATM service quality.`,
+        callbackUrl
+      );
+    }
 
     res.status(201).json({ id: insert.rows[0].id, status: 'received' });
   } catch (err) {

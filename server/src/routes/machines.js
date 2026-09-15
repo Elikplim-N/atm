@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import QRCode from 'qrcode';
 import { query } from '../db.js';
+import { getRequestOrigin } from '../utils/http.js';
 
 const router = Router();
 
@@ -40,10 +41,7 @@ router.get('/:code/qrcode', async (req, res, next) => {
     const machine = rows[0];
     if (!machine) return res.status(404).json({ error: 'Machine not found' });
 
-    const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
-    const requestOrigin = host ? `${proto}://${host}` : null;
-    const baseUrl = process.env.PUBLIC_WEB_URL || requestOrigin || 'http://localhost:5173';
+    const baseUrl = process.env.PUBLIC_WEB_URL || getRequestOrigin(req) || 'http://localhost:5173';
     const feedbackUrl = `${baseUrl}/feedback?machine=${encodeURIComponent(machine.code)}`;
 
     const dataUrl = await QRCode.toDataURL(feedbackUrl, { margin: 1, width: 320 });

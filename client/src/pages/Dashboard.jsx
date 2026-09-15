@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notifyStatus, setNotifyStatus] = useState(null); // null | 'sending' | { ...result } | { error }
 
   const from = useMemo(() => {
     if (!rangeDays) return null;
@@ -76,6 +77,16 @@ export default function Dashboard() {
       })
       .finally(() => setLoading(false));
   }, [branchId, machineId, from, granularity]);
+
+  async function sendAlertSms() {
+    setNotifyStatus('sending');
+    try {
+      const { data } = await api.post('/dashboard/alerts/notify');
+      setNotifyStatus(data);
+    } catch (err) {
+      setNotifyStatus({ error: err.response?.data?.error || 'Failed to send SMS alert.' });
+    }
+  }
 
   return (
     <div>
@@ -170,7 +181,28 @@ export default function Dashboard() {
           </div>
 
           <div className="card">
-            <h3 className="section-title">ATMs needing attention (last 7 days, avg ≤ 3)</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 className="section-title" style={{ margin: 0 }}>
+                ATMs needing attention (last 7 days, avg ≤ 3)
+              </h3>
+              <button
+                className="btn-secondary"
+                onClick={sendAlertSms}
+                disabled={alerts.length === 0 || notifyStatus === 'sending'}
+              >
+                {notifyStatus === 'sending' ? 'Sending…' : 'Send SMS alert to management'}
+              </button>
+            </div>
+
+            {notifyStatus && notifyStatus !== 'sending' && (
+              <div className={`banner ${notifyStatus.error || !notifyStatus.sent ? 'error' : 'success'}`}>
+                {notifyStatus.error ||
+                  (notifyStatus.sent
+                    ? `SMS sent to ${notifyStatus.sentCount}/${notifyStatus.totalRecipients} recipient(s) about ${notifyStatus.machineCount} machine(s).`
+                    : notifyStatus.reason || 'No SMS sent.')}
+              </div>
+            )}
+
             <AlertsTable alerts={alerts} />
           </div>
         </>

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendSms } from '../services/arkesel.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -177,45 +178,90 @@ router.get('/machines', async (req, res, next) => {
   }
 });
 
+async function getAlertRows(days, threshold) {
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+  const { rows } = await query(
+    `SELECT m.id, m.code, b.name AS branch_name, COUNT(f.id) AS total,
+            AVG(f.overall_satisfaction) AS avg_overall,
+            AVG(f.network_reliability) AS avg_network,
+            AVG(f.transaction_speed) AS avg_speed,
+            AVG(f.cash_availability) AS avg_cash,
+            AVG(f.security) AS avg_security
+     FROM machines m
+     JOIN branches b ON b.id = m.branch_id
+     JOIN feedback f ON f.machine_id = m.id
+     WHERE f.created_at >= $1
+     GROUP BY m.id, b.name
+     HAVING COUNT(f.id) >= 3 AND AVG(f.overall_satisfaction) <= $2
+     ORDER BY avg_overall ASC`,
+    [since, threshold]
+  );
+
+  return rows.map((r) => ({
+    id: r.id,
+    code: r.code,
+    branchName: r.branch_name,
+    total: Number(r.total),
+    avgOverall: Number(Number(r.avg_overall).toFixed(2)),
+    avgNetwork: Number(Number(r.avg_network).toFixed(2)),
+    avgSpeed: Number(Number(r.avg_speed).toFixed(2)),
+    avgCash: Number(Number(r.avg_cash).toFixed(2)),
+    avgSecurity: Number(Number(r.avg_security).toFixed(2)),
+    windowDays: days,
+  }));
+}
+
 // Machines whose recent (last `days`) average overall satisfaction is at or
 // below `threshold` — the "recurring issues" surfaced for management action.
 router.get('/alerts', async (req, res, next) => {
   try {
     const days = Number(req.query.days) > 0 ? Number(req.query.days) : 7;
     const threshold = Number(req.query.threshold) > 0 ? Number(req.query.threshold) : 3;
-    const since = new Date(Date.now() - days * 86400000).toISOString();
+    res.json(await getAlertRows(days, threshold));
+  } catch (err) {
+    next(err);
+  }
+});
 
-    const { rows } = await query(
-      `SELECT m.id, m.code, b.name AS branch_name, COUNT(f.id) AS total,
-              AVG(f.overall_satisfaction) AS avg_overall,
-              AVG(f.network_reliability) AS avg_network,
-              AVG(f.transaction_speed) AS avg_speed,
-              AVG(f.cash_availability) AS avg_cash,
-              AVG(f.security) AS avg_security
-       FROM machines m
-       JOIN branches b ON b.id = m.branch_id
-       JOIN feedback f ON f.machine_id = m.id
-       WHERE f.created_at >= $1
-       GROUP BY m.id, b.name
-       HAVING COUNT(f.id) >= 3 AND AVG(f.overall_satisfaction) <= $2
-       ORDER BY avg_overall ASC`,
-      [since, threshold]
-    );
+// Sends the current alert list as an SMS to the phone numbers configured in
+// ALERT_PHONE_NUMBERS (comma-separated), via Arkesel. Triggered manually from
+// the dashboard rather than on a schedule, since a serverless deployment has
+// no long-running process to run a periodic job from.
+router.post('/alerts/notify', async (req, res, next) => {
+  try {
+    const days = Number(req.query.days) > 0 ? Number(req.query.days) : 7;
+    const threshold = Number(req.query.threshold) > 0 ? Number(req.query.threshold) : 3;
+    const rows = await getAlertRows(days, threshold);
 
-    res.json(
-      rows.map((r) => ({
-        id: r.id,
-        code: r.code,
-        branchName: r.branch_name,
-        total: Number(r.total),
-        avgOverall: Number(Number(r.avg_overall).toFixed(2)),
-        avgNetwork: Number(Number(r.avg_network).toFixed(2)),
-        avgSpeed: Number(Number(r.avg_speed).toFixed(2)),
-        avgCash: Number(Number(r.avg_cash).toFixed(2)),
-        avgSecurity: Number(Number(r.avg_security).toFixed(2)),
-        windowDays: days,
-      }))
-    );
+    if (rows.length === 0) {
+      return res.json({ sent: false, reason: 'No machines currently below threshold.' });
+    }
+
+    const recipients = (process.env.ALERT_PHONE_NUMBERS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (recipients.length === 0) {
+      return res.status(400).json({ error: 'ALERT_PHONE_NUMBERS is not configured on the server.' });
+    }
+
+    const lines = rows
+      .slice(0, 5)
+      .map((r) => `${r.code} (${r.branchName}): ${r.avgOverall}/5`);
+    const message =
+      `GCB ATM Alert: ${rows.length} machine(s) at or below ${threshold}/5 ` +
+      `in the last ${days}d.\n${lines.join('\n')}`;
+
+    const results = await Promise.all(recipients.map((num) => sendSms(num, message)));
+    const sentCount = results.filter(Boolean).length;
+
+    res.json({
+      sent: sentCount > 0,
+      sentCount,
+      totalRecipients: recipients.length,
+      machineCount: rows.length,
+    });
   } catch (err) {
     next(err);
   }

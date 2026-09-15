@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { query, maskContact } from '../db.js';
+import { sendSms } from '../services/arkesel.js';
+import { getRequestOrigin } from '../utils/http.js';
 
 const router = Router();
 
@@ -9,6 +11,14 @@ const FORMAT_HELP =
 
 // Simulates an inbound SMS to a bank shortcode, e.g.:
 // "ATM ATM-ACC-01 4 5 3 4 5"
+//
+// A real Arkesel API key only buys outbound sending and delivery-status
+// callbacks (see arkesel.js and the /delivery-callback route below) — genuine
+// two-way SMS (a customer's own reply reaching this endpoint) needs a
+// dedicated Arkesel short code, provisioned separately and only available in
+// Ghana. So the inbound message here is still simulated, exactly as before;
+// what's new is that the confirmation reply is now sent as a real SMS
+// through Arkesel when ARKESEL_API_KEY is configured.
 router.post('/', async (req, res, next) => {
   try {
     const { from, text } = req.body || {};
@@ -43,14 +53,34 @@ router.post('/', async (req, res, next) => {
       [machine.id, network, speed, cash, security, overall, maskContact(from)]
     );
 
+    const replyText = `GCB Bank: Thank you! Your feedback for ${machineCode} has been recorded.`;
+
+    if (from) {
+      const origin = getRequestOrigin(req);
+      const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
+      // Fire-and-forget from the caller's perspective, but awaited here so a
+      // serverless invocation doesn't get torn down before the request completes.
+      await sendSms(from, replyText, callbackUrl);
+    }
+
     res.status(201).json({
       id: insert.rows[0].id,
       status: 'received',
-      reply: `Thank you! Your feedback for ${machineCode} has been recorded.`,
+      reply: replyText,
     });
   } catch (err) {
     next(err);
   }
+});
+
+// Arkesel calls this back with the delivery status of a message we sent
+// (see services/arkesel.js). Per Arkesel's own docs this callback is an
+// unauthenticated, unsigned GET, so it's treated as untrusted input: it's
+// only ever logged here, never used to drive any write or business decision.
+router.get('/delivery-callback', (req, res) => {
+  const { sms_id: smsId, status } = req.query;
+  console.log(`Arkesel delivery report: sms_id=${smsId} status=${status}`);
+  res.sendStatus(200);
 });
 
 export default router;

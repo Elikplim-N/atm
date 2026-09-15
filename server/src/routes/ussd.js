@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { query, maskContact } from '../db.js';
+import { sendSms } from '../services/arkesel.js';
+import { getRequestOrigin } from '../utils/http.js';
 
 const router = Router();
 
@@ -58,6 +60,16 @@ router.post('/', async (req, res, next) => {
        VALUES ($1, 'ussd', $2, $3, $4, $5, $6, NULL, $7)`,
       [machine.id, +network, +speed, +cash, +security, +overall, maskContact(phoneNumber)]
     );
+
+    if (phoneNumber) {
+      const origin = getRequestOrigin(req);
+      const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
+      await sendSms(
+        phoneNumber,
+        `GCB Bank: Thank you! Your feedback for ${machineCode} has been recorded.`,
+        callbackUrl
+      );
+    }
 
     return res.send('END Thank you! Your feedback has been recorded and helps us improve ATM service quality.');
   } catch (err) {

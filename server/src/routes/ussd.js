@@ -66,7 +66,7 @@ router.post('/', async (req, res, next) => {
       const callbackUrl = origin ? `${origin}/api/sms/delivery-callback` : undefined;
       await sendSms(
         phoneNumber,
-        `Thank you! Your feedback for Demo ATM has been recorded.`,
+        `Thank you! Your feedback for ${machineCode} has been recorded. - GCB`,
         callbackUrl
       );
     }

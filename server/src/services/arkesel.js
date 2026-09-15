@@ -40,9 +40,16 @@ export async function sendSms(to, message, callbackUrl) {
       },
       body: JSON.stringify(body),
     });
-    const data = await res.json().catch(() => null);
+    const rawBody = await res.text();
+    let data = null;
+    try {
+      data = JSON.parse(rawBody);
+    } catch {
+      // Non-JSON response (e.g. an upstream proxy error page) — fall through
+      // with data left null so the raw text still gets logged below.
+    }
     if (!res.ok || data?.status !== 'success') {
-      console.error('Arkesel SMS send failed:', res.status, data);
+      console.error('Arkesel SMS send failed:', res.status, data ?? rawBody);
       return null;
     }
     return data;

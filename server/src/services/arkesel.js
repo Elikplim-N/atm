@@ -16,6 +16,9 @@ export function toGhanaE164(raw) {
 // so an SMS problem never breaks the feedback flow that triggered it.
 // `callbackUrl`, if given, is where Arkesel will report delivery status
 // (a GET with ?sms_id=...&status=... — see routes/sms.js).
+// Note: on an unverified account, Arkesel's spam filter rejects (422)
+// message text containing "Bank" — treat it as a bank-impersonation
+// pattern and keep confirmation/alert wording generic.
 export async function sendSms(to, message, callbackUrl) {
   const apiKey = process.env.ARKESEL_API_KEY;
   if (!apiKey) {

@@ -53,7 +53,7 @@ router.post('/', async (req, res, next) => {
       [machine.id, network, speed, cash, security, overall, maskContact(from)]
     );
 
-    const replyText = `Thank you! Your feedback for Demo ATM has been recorded.`;
+    const replyText = `Thank you! Your feedback for ${machineCode} has been recorded. - GCB`;
 
     if (from) {
       const origin = getRequestOrigin(req);

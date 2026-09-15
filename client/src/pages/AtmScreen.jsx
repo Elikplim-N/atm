@@ -184,7 +184,7 @@ export default function AtmScreen() {
             className="clean-action-link"
             onClick={() => setScreenState('rating')}
           >
-            Simulate Transaction Prompt
+            New Transaction
           </button>
           <button
             type="button"
@@ -422,7 +422,7 @@ export default function AtmScreen() {
                   className="clean-btn-primary"
                   onClick={() => setScreenState('rating')}
                 >
-                  Simulate Cash Dispense & Complete Transaction →
+                  Continue to Transaction →
                 </button>
               </div>
             </div>
